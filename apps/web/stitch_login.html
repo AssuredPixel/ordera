@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ordera | Sign In</title>
+<!-- Fonts: Newsreader for Brand Serif, Plus Jakarta Sans for operational Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "surface-container": "#edeeef",
+              "surface-container-high": "#e7e8e9",
+              "on-primary-fixed-variant": "#6c3a00",
+              "inverse-on-surface": "#f0f1f2",
+              "primary-container": "#ab6310",
+              "primary-fixed": "#ffdcc1",
+              "on-background": "#191c1d",
+              "inverse-surface": "#2e3132",
+              "on-tertiary-container": "#fafdff",
+              "secondary-container": "#e2e0fc",
+              "outline-variant": "#d9c2b2",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-fixed-variant": "#004d61",
+              "surface-container-low": "#f3f4f5",
+              "inverse-primary": "#ffb877",
+              "on-secondary-container": "#63627a",
+              "tertiary-container": "#007f9d",
+              "on-surface-variant": "#534437",
+              "on-secondary-fixed-variant": "#45455b",
+              "primary": "#8a4d00",
+              "surface": "#f8f9fa",
+              "surface-variant": "#e1e3e4",
+              "on-surface": "#191c1d",
+              "secondary": "#5d5c74",
+              "tertiary-fixed": "#b8eaff",
+              "on-primary": "#ffffff",
+              "primary-fixed-dim": "#ffb877",
+              "on-secondary-fixed": "#1a1a2e",
+              "error": "#ba1a1a",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "outline": "#867465",
+              "surface-container-highest": "#e1e3e4",
+              "secondary-fixed": "#e2e0fc",
+              "secondary-fixed-dim": "#c6c4df",
+              "surface-bright": "#f8f9fa",
+              "tertiary": "#00647d",
+              "background": "#f8f9fa",
+              "on-tertiary-fixed": "#001f28",
+              "on-primary-fixed": "#2e1600",
+              "on-primary-container": "#fffbff",
+              "surface-dim": "#d9dadb",
+              "surface-tint": "#8e4f00",
+              "tertiary-fixed-dim": "#64d4fa"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .logo-spark {
+        background: radial-gradient(circle, #C97B2A 0%, rgba(201, 123, 42, 0) 70%);
+      }
+    </style>
+</head>
+<body class="h-full font-body bg-surface antialiased overflow-hidden">
+<main class="flex h-screen w-full">
+<!-- LEFT PANEL: Brand Narrative (40%) -->
+<section class="hidden lg:flex lg:w-[40%] bg-[#1A1A2E] flex-col justify-between p-12 relative overflow-hidden">
+<!-- Brand Identity -->
+<div class="z-10 flex items-center gap-3">
+<div class="relative w-10 h-10 flex items-center justify-center">
+<span class="font-headline text-4xl font-bold text-white leading-none">O</span>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-[#C97B2A] rounded-full shadow-[0_0_10px_#C97B2A]"></div>
+</div>
+<span class="font-headline text-2xl font-bold text-white tracking-tight">Ordera</span>
+</div>
+<!-- Editorial Illustration Area -->
+<div class="z-10 flex flex-col items-center">
+<div class="relative w-full max-w-sm aspect-square flex items-center justify-center mb-12">
+<!-- Abstract Restaurant Motif -->
+<div class="absolute w-64 h-64 border border-[#C97B2A]/20 rounded-full"></div>
+<div class="absolute w-48 h-48 border border-[#C97B2A]/40 rounded-full animate-pulse"></div>
+<div class="relative z-20 flex flex-col gap-4 items-center">
+<span class="material-symbols-outlined text-8xl text-[#C97B2A]" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<div class="flex gap-2">
+<div class="w-12 h-1 bg-[#C97B2A] rounded-full"></div>
+<div class="w-4 h-1 bg-white/20 rounded-full"></div>
+<div class="w-4 h-1 bg-white/20 rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="text-left space-y-4 max-w-md">
+<h1 class="font-headline text-4xl text-white leading-tight">Run every table. Know every number.</h1>
+<p class="text-[#9CA3AF] text-sm leading-relaxed max-w-sm">
+                        Ordera gives your team the tools to serve better and faster — powered by intelligence.
+                    </p>
+</div>
+</div>
+<!-- Pagination Dots -->
+<div class="z-10 flex gap-2">
+<div class="w-8 h-1.5 bg-[#C97B2A] rounded-full"></div>
+<div class="w-1.5 h-1.5 bg-white/20 rounded-full"></div>
+<div class="w-1.5 h-1.5 bg-white/20 rounded-full"></div>
+</div>
+<!-- Subtle background texture -->
+<div class="absolute bottom-0 right-0 w-64 h-64 bg-[#C97B2A]/5 rounded-full blur-3xl -mb-32 -mr-32"></div>
+</section>
+<!-- RIGHT PANEL: Authentication (60%) -->
+<section class="w-full lg:w-[60%] bg-white flex flex-col relative">
+<!-- Desktop Top Right Meta -->
+<div class="absolute top-8 right-12 text-[#9CA3AF] text-xs font-medium tracking-wider">
+                © 2026 ORDERA
+            </div>
+<!-- Center Content -->
+<div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 max-w-2xl mx-auto w-full">
+<header class="mb-10">
+<h2 class="font-headline text-[32px] text-[#1A1A2E] leading-tight mb-2">Welcome back.</h2>
+<p class="text-[#6B7280] text-sm">Sign in to continue.</p>
+</header>
+<form class="space-y-6">
+<!-- Input: Sales ID -->
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant block">Sales ID number</label>
+<div class="relative group">
+<input class="w-full h-12 px-4 bg-white border border-[#D1D5DB] rounded-lg focus:ring-2 focus:ring-[#8A4D00]/10 focus:border-[#8A4D00] transition-all outline-none text-on-surface placeholder:text-gray-300" placeholder="Enter your ID" type="text"/>
+</div>
+</div>
+<!-- Input: Password -->
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant block">Password</label>
+<div class="relative group">
+<input class="w-full h-12 px-4 bg-white border border-[#D1D5DB] rounded-lg focus:ring-2 focus:ring-[#8A4D00]/10 focus:border-[#8A4D00] transition-all outline-none text-on-surface placeholder:text-gray-300" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#1A1A2E] transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<div class="pt-2">
+<button class="w-full h-[44px] bg-[#C97B2A] text-white font-semibold rounded-lg hover:bg-[#B06822] active:scale-[0.98] transition-all shadow-sm" type="submit">
+                            Sign In
+                        </button>
+</div>
+<!-- Forgot Password Link -->
+<div class="text-center">
+<a class="text-[13px] text-[#C97B2A] font-medium hover:underline" href="#">Forgot password?</a>
+</div>
+<!-- Divider -->
+<div class="relative flex items-center py-4">
+<div class="flex-grow border-t border-[#E5E7EB]"></div>
+<span class="flex-shrink mx-4 text-gray-400 text-xs font-medium uppercase tracking-widest">or</span>
+<div class="flex-grow border-t border-[#E5E7EB]"></div>
+</div>
+<!-- Social Buttons -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 h-10 border border-[#E5E7EB] rounded-lg bg-white hover:bg-gray-50 transition-colors text-xs font-semibold text-[#1A1A2E]" type="button">
+<img alt="" class="w-4 h-4" data-alt="Google colorful G logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAySn1Rq45S9W7OOYMpA8YxbwnfIAyZCeezH1spIWWeY7LL2P_jzazOkTOKXNQo1O5ckxhx9T034NGlKpKqbKzqez0D2Jp-qa0k0yNSYXU-j1d7JE5ldQ3XbXh6DdW3_5uuzMajPlZOiQJcwznlT7xr7Dt0mhYY8GaXIn88_UcX_FrfOnEAfXKAMuApC4G2fetH535fv9TfpSh5EAIaYZaT9ss1cWcynRnkvd8KGfFv-iNtTzZylbFhO6gpmqZ95-1-t279ApMLFm0O"/>
+                            Google
+                        </button>
+<button class="flex items-center justify-center gap-2 h-10 border border-[#E5E7EB] rounded-lg bg-white hover:bg-gray-50 transition-colors text-xs font-semibold text-[#1A1A2E]" type="button">
+<span class="material-symbols-outlined text-[18px] text-[#1877F2]" style="font-variation-settings: 'FILL' 1;">social_leaderboard</span>
+                            Facebook
+                        </button>
+</div>
+</form>
+<footer class="mt-12 text-center">
+<p class="text-sm text-[#6B7280]">
+                        Don't have an account? 
+                        <a class="text-[#C97B2A] font-semibold hover:underline ml-1" href="#">Go to Registration</a>
+</p>
+</footer>
+</div>
+<!-- Bottom decorative element -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#C97B2A]/20 to-transparent"></div>
+</section>
+</main>
+<!-- Visual Hint for Tablet Optimization -->
+<div class="lg:hidden fixed inset-0 flex items-center justify-center bg-white p-6 text-center">
+<div class="max-w-xs space-y-4">
+<div class="relative w-12 h-12 flex items-center justify-center mx-auto">
+<span class="font-headline text-5xl font-bold text-[#1A1A2E] leading-none">O</span>
+<div class="absolute -top-1 -right-1 w-3 h-3 bg-[#C97B2A] rounded-full"></div>
+</div>
+<h1 class="font-headline text-3xl text-[#1A1A2E]">Ordera Mobile</h1>
+<p class="text-on-surface-variant text-sm">Please rotate your device or use a larger screen to experience the full POS editor dashboard.</p>
+</div>
+</div>
+</body></html>
