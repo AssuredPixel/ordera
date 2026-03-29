@@ -49,14 +49,20 @@ export class SeedService implements OnModuleInit {
     ];
 
     console.log('--- Ordera Seeding Process Starting ---');
-    for (const userData of testUsers) {
-      await this.userModel.findOneAndUpdate(
-        { salesId: userData.salesId },
-        { $set: userData },
-        { upsert: true, new: true }
-      );
-      console.log(`- Processed user: ${userData.salesId} (${userData.role})`);
+    try {
+      for (const userData of testUsers) {
+        const result = await this.userModel.findOneAndUpdate(
+          { salesId: userData.salesId },
+          { $set: userData },
+          { upsert: true, new: true, runValidators: true }
+        );
+        console.log(`[Seed] Processed user: ${userData.salesId} | Role: ${userData.role} | ID: ${result._id}`);
+      }
+      console.log('--- Ordera Seeding Process Completed Successfully ---');
+    } catch (error) {
+      console.error('--- Ordera Seeding Process Failed ---');
+      console.error(error);
     }
-    console.log('--- Ordera Seeding Process Completed ---');
+
   }
 }

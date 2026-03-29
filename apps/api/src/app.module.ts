@@ -17,8 +17,22 @@ import { DashboardModule } from './dashboard/dashboard.module';
         uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/ordera',
         serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 10000,
+        connectionFactory: (connection) => {
+          connection.on('connected', () => {
+            console.log('[Mongoose] Successfully connected to MongoDB Atlas');
+          });
+          connection.on('error', (error) => {
+            console.error('[Mongoose] Connection error:', error);
+          });
+          connection.on('disconnected', () => {
+            console.warn('[Mongoose] Disconnected from MongoDB');
+          });
+          return connection;
+        },
       }),
     }),
+
+
     AuthModule,
     UsersModule,
     MenuModule,
