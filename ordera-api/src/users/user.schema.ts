@@ -1,0 +1,30 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { UserRole } from '../common/types';
+
+@Schema({ timestamps: true })
+export class User extends Document {
+  @Prop({ required: true, unique: true })
+  salesId: string;
+
+  @Prop({ required: true, unique: true })
+  email: string;
+
+  @Prop({ required: true })
+  passwordHash: string;
+
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true, enum: ['owner', 'manager', 'supervisor', 'waiter', "kitchen"] })
+  role: UserRole;
+
+  @Prop({ required: true, index: true })
+  organizationId: string;
+
+  @Prop({ required: true, index: true })
+  branchId: string;
+}
+
+export const UserSchema = SchemaFactory.createForClass(User);
+
