@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { MenuModule } from './menu/menu.module';
-import { OrdersModule } from './orders/orders.module';
-import { BillsModule } from './bills/bills.module';
-import { MessagesModule } from './messages/messages.module';
-import { DashboardModule } from './dashboard/dashboard.module';
-import { IdentityModule } from './identity/identity.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { MenuModule } from './modules/menu/menu.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { BillsModule } from './modules/bills/bills.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { BranchesModule } from './modules/branches/branches.module';
 
 @Module({
   imports: [
@@ -41,7 +41,7 @@ import { IdentityModule } from './identity/identity.module';
     BillsModule,
     MessagesModule,
     DashboardModule,
-    IdentityModule,
+    BranchesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

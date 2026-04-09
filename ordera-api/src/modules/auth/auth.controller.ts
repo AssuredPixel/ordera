@@ -1,7 +1,8 @@
 import { Controller, Post, Body, Res, Get, UseGuards, Req } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -28,9 +29,9 @@ export class AuthController {
     return { message: 'Logged out' };
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getMe(@Req() request: any) {
-    return request.user;
+  async getMe(@GetUser() user: any) {
+    return user;
   }
 }

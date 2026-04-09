@@ -12,4 +12,4 @@ import { Branch, BranchSchema } from './schemas/branch.schema';
   ],
   exports: [MongooseModule],
 })
-export class IdentityModule {}
+export class BranchesModule {}

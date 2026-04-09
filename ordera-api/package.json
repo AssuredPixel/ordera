@@ -23,6 +23,8 @@
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
     "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "cross-env": "^10.1.0",
     "mongoose": "^8.9.0",
@@ -36,9 +38,13 @@
     "@nestjs/schematics": "^11.0.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
+    "@types/eslint": "^9.6.1",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
-    "typescript": "^5.7.3"
+    "@types/whatwg-url": "^13.0.0",
+    "ajv": "^8.18.0",
+    "typescript": "^5.7.3",
+    "uri-js": "^4.4.1"
   }
 }

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.schema';
-import { UserRole } from '../common/types';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -19,7 +19,7 @@ export class SeedService implements OnModuleInit {
         salesId: '1001',
         email: 'owner@ordera.com',
         name: 'Chinedu Okeke',
-        role: UserRole.OWNER,
+        role: Role.OWNER,
         passwordHash,
         organizationId,
         branchId,
@@ -28,7 +28,7 @@ export class SeedService implements OnModuleInit {
         salesId: '2001',
         email: 'manager@ordera.com',
         name: 'Amina Yusuf',
-        role: UserRole.MANAGER,
+        role: Role.MANAGER,
         passwordHash,
         organizationId,
         branchId,
@@ -37,7 +37,7 @@ export class SeedService implements OnModuleInit {
         salesId: '3001',
         email: 'supervisor@ordera.com',
         name: 'Babatunde Adekunle',
-        role: UserRole.SUPERVISOR,
+        role: Role.SUPERVISOR,
         passwordHash,
         organizationId,
         branchId,
@@ -46,7 +46,7 @@ export class SeedService implements OnModuleInit {
         salesId: '4001',
         email: 'waiter@ordera.com',
         name: 'Emeka Nwosu',
-        role: UserRole.WAITER,
+        role: Role.WAITER,
         passwordHash,
         organizationId,
         branchId,
@@ -55,7 +55,7 @@ export class SeedService implements OnModuleInit {
         salesId: '5001',
         email: 'kitchen@ordera.com',
         name: 'Chef Kelvin Peter',
-        role: UserRole.KITCHEN,
+        role: Role.KITCHEN,
         passwordHash,
         organizationId,
         branchId,

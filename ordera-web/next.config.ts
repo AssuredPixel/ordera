@@ -2,12 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  transpilePackages: ["@ordera/shared"],
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5001/:path*',
+        destination: `${process.env.API_URL || 'http://localhost:3001'}/:path*`,
       },
     ];
   },
