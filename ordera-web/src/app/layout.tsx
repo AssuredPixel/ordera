@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/hooks/useAuth";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -37,6 +38,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <Toaster position="bottom-right" richColors />
         </AuthProvider>
       </body>
     </html>

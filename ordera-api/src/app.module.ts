@@ -9,6 +9,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { BillsModule } from './modules/bills/bills.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { BranchesModule } from './modules/branches/branches.module';
 
 @Module({
@@ -36,6 +37,7 @@ import { BranchesModule } from './modules/branches/branches.module';
 
     AuthModule,
     UsersModule,
+    OrganizationsModule,
     MenuModule,
     OrdersModule,
     BillsModule,

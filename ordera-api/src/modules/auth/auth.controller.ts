@@ -10,7 +10,10 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: any, @Res({ passthrough: true }) response: Response) {
-    const result = await this.authService.login(body.salesId, body.password);
+    const result = await this.authService.login(body.salesId, body.password, {
+      deviceName: body.deviceName,
+      location: body.location
+    });
     
     // Set httpOnly cookie
     response.cookie('jwt', result.access_token, {
@@ -23,15 +26,17 @@ export class AuthController {
     return result;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Res({ passthrough: true }) response: Response) {
+  async logout(@GetUser() user: any, @Res({ passthrough: true }) response: Response) {
+    await this.authService.logout(user.sub, user.sessionId);
     response.clearCookie('jwt');
-    return { message: 'Logged out' };
+    return { message: 'Logged out successfully' };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@GetUser() user: any) {
-    return user;
+    return this.authService.getMe(user.sub);
   }
 }

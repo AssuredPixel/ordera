@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import "./global.css";
-import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useAuth } from './src/hooks/useAuth';
+import Toast from 'react-native-toast-message';
 
 export default function App() {
   const [salesId, setSalesId] = useState('');
@@ -13,16 +14,32 @@ export default function App() {
 
   const handleLogin = async () => {
     if (!salesId || !password) {
-      Alert.alert('Error', 'Please enter both Sales ID and Password');
+      Toast.show({
+        type: 'error',
+        text1: 'Required',
+        text2: 'Please enter both Sales ID and Password',
+        position: 'bottom'
+      });
       return;
     }
 
     setIsSubmitting(true);
     try {
       await login(salesId, password);
+      Toast.show({
+        type: 'success',
+        text1: 'Connected',
+        text2: 'Welcome back!',
+        position: 'bottom'
+      });
     } catch (err: any) {
       const message = err.response?.data?.message || 'Failed to sign in. Please check your credentials.';
-      Alert.alert('Login Failed', message);
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: message,
+        position: 'bottom'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -99,6 +116,7 @@ export default function App() {
         </View>
       </View>
       <StatusBar style="auto" />
+      <Toast />
     </View>
   );
 }

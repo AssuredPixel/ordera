@@ -20,10 +20,13 @@ yarn-error.log*
 # Environment
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*.local
+.env.*
+**/.env*
+!**/.env.example
+*.key
+*.pem
+.npmrc
+.yarnrc
 
 # System files
 .DS_Store

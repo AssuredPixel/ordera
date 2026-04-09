@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -20,14 +21,18 @@ export default function LoginPage() {
     
     if (!salesId || !password) {
       setError('Sales ID and Password are required');
+      toast.error('Sales ID and Password are required');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await login(salesId, password);
+      toast.success('Signed in successfully! Redirecting...');
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
+      const message = err.message || 'Invalid credentials';
+      setError(message);
+      toast.error(message);
       setIsSubmitting(false);
     }
   };

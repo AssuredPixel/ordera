@@ -27,11 +27,13 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "cross-env": "^10.1.0",
+    "dotenv": "^17.4.1",
     "mongoose": "^8.9.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.1",
@@ -42,6 +44,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
+    "@types/uuid": "^10.0.0",
     "@types/whatwg-url": "^13.0.0",
     "ajv": "^8.18.0",
     "typescript": "^5.7.3",

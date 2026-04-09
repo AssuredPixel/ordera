@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Organization, OrganizationSchema } from './schemas/organization.schema';
+import { Organization, OrganizationSchema } from '../organizations/schemas/organization.schema';
 import { Branch, BranchSchema } from './schemas/branch.schema';
 
 @Module({

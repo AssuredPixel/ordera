@@ -16,6 +16,7 @@
     "nativewind": "^4.2.3",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-toast-message": "^2.3.3",
     "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
