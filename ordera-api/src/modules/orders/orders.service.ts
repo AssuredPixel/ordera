@@ -13,11 +13,10 @@ import { CreateOrderDto, AddOrderItemDto, UpdateOrderStatusDto } from './dto/ord
 
 // Legal status transitions — enforces the order lifecycle
 const ALLOWED_TRANSITIONS: Record<string, OrderStatus[]> = {
-  [OrderStatus.PENDING]:   [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
-  [OrderStatus.CONFIRMED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
-  [OrderStatus.PREPARING]: [OrderStatus.READY, OrderStatus.CANCELLED],
-  [OrderStatus.READY]:     [OrderStatus.SERVED],
-  [OrderStatus.SERVED]:    [OrderStatus.COMPLETED],
+  [OrderStatus.PENDING]:   [OrderStatus.ACTIVE, OrderStatus.CANCELLED],
+  [OrderStatus.ACTIVE]:    [OrderStatus.SERVED, OrderStatus.CANCELLED],
+  [OrderStatus.SERVED]:    [OrderStatus.BILLED],
+  [OrderStatus.BILLED]:    [OrderStatus.COMPLETED],
   [OrderStatus.COMPLETED]: [],
   [OrderStatus.CANCELLED]: [],
 };
@@ -86,8 +85,8 @@ export class OrdersService {
     const order = await this.orderModel.findOne({ _id: orderId, organizationId, branchId });
     if (!order) throw new NotFoundException('Order not found in this branch');
 
-    // 2. Only allow items on PENDING or CONFIRMED orders
-    if (![OrderStatus.PENDING, OrderStatus.CONFIRMED].includes(order.status)) {
+    // 2. Only allow items on PENDING or ACTIVE orders
+    if (![OrderStatus.PENDING, OrderStatus.ACTIVE].includes(order.status)) {
       throw new BadRequestException(
         `Cannot add items to an order with status "${order.status}"`,
       );

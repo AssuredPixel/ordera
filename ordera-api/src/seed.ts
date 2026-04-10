@@ -68,8 +68,32 @@ const MenuItemSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
-// ─── Menu seed data (amounts in kobo, divide by 100 for display only) ─────────
-// ₦3,500 = 350000 kobo | ₦1,500 = 150000 kobo | ₦2,000 = 200000 kobo
+const ThreadSchema = new mongoose.Schema({
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+  branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
+  type: { type: String, enum: ['group', 'direct'] },
+  name: String,
+  memberIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  lastMessage: {
+    content: String,
+    senderName: String,
+    sentAt: { type: Date, default: Date.now }
+  },
+  unreadCounts: { type: Map, of: Number, default: {} }
+}, { timestamps: true });
+
+const MessageSchema = new mongoose.Schema({
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+  threadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Thread' },
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  senderName: String,
+  senderAvatar: String,
+  content: String,
+  attachmentUrl: String,
+  readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+}, { timestamps: { createdAt: true, updatedAt: false } });
+
+// ─── Menu seed data ───────────────────────────────────────────────────────────
 
 const menuCatalog = [
   {
@@ -152,6 +176,8 @@ async function seed() {
   const UserModel = mongoose.model('User', UserSchema);
   const CategoryModel = mongoose.model('Category', CategorySchema);
   const MenuItemModel = mongoose.model('MenuItem', MenuItemSchema);
+  const ThreadModel = mongoose.model('Thread', ThreadSchema);
+  const MessageModel = mongoose.model('Message', MessageSchema);
 
   const orgConfigs = [
     { name: 'Demo Restaurant', slug: 'demo', country: 'NG', currency: 'NGN' },
@@ -164,21 +190,18 @@ async function seed() {
   for (const config of orgConfigs) {
     console.log(`\nProcessing Organization: ${config.name}...`);
 
-    // 1. Upsert Organization
     const org = await OrganizationModel.findOneAndUpdate(
       { slug: config.slug },
       { $set: config },
       { upsert: true, new: true }
     );
 
-    // 2. Upsert Branch
     const branch = await BranchModel.findOneAndUpdate(
       { organizationId: org._id, slug: 'main' },
-      { $set: { name: 'Main Branch', address: { street: '123 Street', city: 'City', country: config.country } } },
+      { $set: { name: 'Main Branch', slug: 'main', address: { street: '123 Street', city: 'City', country: config.country } } },
       { upsert: true, new: true }
     );
 
-    // 3. Upsert Users
     const rolesData = [
       { role: Role.OWNER, prefix: 'OWNER' },
       { role: Role.MANAGER, prefix: 'MGR' },
@@ -187,9 +210,10 @@ async function seed() {
       { role: Role.KITCHEN, prefix: 'KITC' },
     ];
 
+    const users = [];
     for (const roleInfo of rolesData) {
       const salesId = `${roleInfo.prefix}001`;
-      await UserModel.findOneAndUpdate(
+      const u = await UserModel.findOneAndUpdate(
         { organizationId: org._id, salesId },
         {
           $set: {
@@ -204,10 +228,81 @@ async function seed() {
             isActive: true
           }
         },
-        { upsert: true }
+        { upsert: true, new: true }
       );
+      users.push(u);
     }
     console.log(`  ✓ Users seeded (5 roles)`);
+
+    // Only seed messaging for Demo Restaurant
+    if (config.slug === 'demo') {
+      const owner = users.find(u => u.role === Role.OWNER);
+      const manager = users.find(u => u.role === Role.MANAGER);
+      const supervisor = users.find(u => u.role === Role.SUPERVISOR);
+      const waiter = users.find(u => u.role === Role.WAITER);
+      const kitchen = users.find(u => u.role === Role.KITCHEN);
+
+      const threadConfigs = [
+        { name: 'Front of House', type: 'group', members: [owner, manager, supervisor, waiter, kitchen].map(u => u._id) },
+        { name: 'Kitchen', type: 'group', members: [manager, supervisor, kitchen].map(u => u._id) },
+        { name: 'Management', type: 'group', members: [owner, manager].map(u => u._id) },
+        { name: null, type: 'direct', members: [owner._id, manager._id] },
+        { name: null, type: 'direct', members: [manager._id, supervisor._id] },
+      ];
+
+      for (const tConfig of threadConfigs) {
+        const thread = await ThreadModel.findOneAndUpdate(
+          { organizationId: org._id, branchId: branch._id, name: tConfig.name, type: tConfig.type, memberIds: { $all: tConfig.members, $size: tConfig.members.length } },
+          {
+            $set: {
+              organizationId: org._id,
+              branchId: branch._id,
+              type: tConfig.type,
+              name: tConfig.name,
+              memberIds: tConfig.members,
+              unreadCounts: tConfig.members.reduce((acc, id) => ({ ...acc, [id.toString()]: 0 }), {})
+            }
+          },
+          { upsert: true, new: true }
+        );
+
+        // Add 5 messages
+        const messages = [
+          "Hey team, let's have a great shift today!",
+          "Don't forget the table 5 special request.",
+          "We are running low on Salmon, update the inventory.",
+          "Waiters, please double check the bill amounts.",
+          "Shift report submitted. Great work everyone!"
+        ];
+
+        for (let i = 0; i < messages.length; i++) {
+          const sender = users[i % users.length];
+          await MessageModel.create({
+            organizationId: org._id,
+            threadId: thread._id,
+            senderId: sender._id,
+            senderName: `${sender.firstName} ${sender.lastName}`,
+            content: messages[i],
+            readBy: [sender._id],
+            createdAt: new Date(Date.now() - (5 - i) * 60000)
+          });
+        }
+        
+        // Update last message
+        const lastMsg = messages[messages.length - 1];
+        const lastSender = users[(messages.length - 1) % users.length];
+        await ThreadModel.findByIdAndUpdate(thread._id, {
+          $set: {
+            lastMessage: {
+              content: lastMsg,
+              senderName: lastSender.firstName,
+              sentAt: new Date()
+            }
+          }
+        });
+      }
+      console.log(`  ✓ Messaging threads + history seeded`);
+    }
 
     // 4. Upsert Categories + Menu Items
     for (const catalog of menuCatalog) {

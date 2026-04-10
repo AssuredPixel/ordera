@@ -6,10 +6,9 @@ export enum OrderType {
 
 export enum OrderStatus {
   PENDING = 'pending',        // Created but not confirmed
-  CONFIRMED = 'confirmed',    // Accepted by kitchen/staff
-  PREPARING = 'preparing',    // Kitchen is actively working
-  READY = 'ready',            // Ready for pickup/serving
+  ACTIVE = 'active',          // Confirmed by kitchen
   SERVED = 'served',          // Delivered to table/customer
+  BILLED = 'billed',          // Bill has been generated
   COMPLETED = 'completed',    // Bill paid, order closed
   CANCELLED = 'cancelled',    // Voided before completion
 }

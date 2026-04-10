@@ -11,6 +11,8 @@ import { MessagesModule } from './modules/messages/messages.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { BranchesModule } from './modules/branches/branches.module';
+import { AIModule } from './modules/ai/ai.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { BranchesModule } from './modules/branches/branches.module';
     MessagesModule,
     DashboardModule,
     BranchesModule,
+    AIModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
