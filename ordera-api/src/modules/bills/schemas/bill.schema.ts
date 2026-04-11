@@ -76,6 +76,9 @@ export class Bill extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   staffId: string;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Customer', default: null })
+  customerId: string | null;
+
   @Prop({ type: String, default: null })
   tableNumber: string | null;
 
@@ -134,7 +137,7 @@ export class Bill extends Document {
 export const BillSchema = SchemaFactory.createForClass(Bill);
 
 // Compound indexes for reporting and POS queries
-BillSchema.index({ organizationId: 1, branchId: 1, status: 1 });
+BillSchema.index({ organizationId: 1, branchId: 1, status: 1, paidAt: -1 });
 BillSchema.index({ organizationId: 1, branchId: 1, createdAt: -1 });
 
 // One bill per order — enforced at DB level

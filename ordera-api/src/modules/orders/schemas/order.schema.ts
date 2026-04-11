@@ -67,12 +67,11 @@ export class Order extends Document {
   })
   branchId: string;
 
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   staffId: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Customer', default: null })
+  customerId: string | null;
 
   // null for delivery/takeaway orders
   @Prop({ type: String, default: null })
@@ -120,6 +119,7 @@ export const OrderSchema = SchemaFactory.createForClass(Order);
 OrderSchema.index({ organizationId: 1, branchId: 1, status: 1 });
 OrderSchema.index({ organizationId: 1, branchId: 1, createdAt: -1 });
 OrderSchema.index({ organizationId: 1, branchId: 1, staffId: 1 });
+OrderSchema.index({ organizationId: 1, branchId: 1, "items.name": 1 }); // Optimized for Trending Dishes
 
 // Export sub-schemas for use in the bills module
 export { OrderItem, OrderItemSchema, OrderAddon, OrderAddonSchema };

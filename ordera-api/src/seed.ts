@@ -42,6 +42,15 @@ const UserSchema = new mongoose.Schema({
   activeSessions: { type: Array, default: [] }
 }, { timestamps: true });
 
+const CustomerSchema = new mongoose.Schema({
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+  branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
+  firstName: String,
+  lastName: String,
+  email: String,
+  phone: String,
+}, { timestamps: true });
+
 const MoneySchema = new mongoose.Schema({ amount: Number, currency: String }, { _id: false });
 const AddonSchema = new mongoose.Schema({ name: String, price: MoneySchema, imageUrl: String });
 
@@ -92,6 +101,28 @@ const MessageSchema = new mongoose.Schema({
   attachmentUrl: String,
   readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: { createdAt: true, updatedAt: false } });
+
+const OrderSchema = new mongoose.Schema({
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+  branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
+  staffId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  orderType: { type: String, enum: ['dine_in', 'takeaway', 'delivery'] },
+  status: String,
+  total: MoneySchema,
+  items: [{ name: String, quantity: Number, lineTotal: MoneySchema }]
+}, { timestamps: true });
+
+const BillSchema = new mongoose.Schema({
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+  branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+  staffId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  total: MoneySchema,
+  status: String,
+  paidAt: Date
+}, { timestamps: true });
 
 // ─── Menu seed data ───────────────────────────────────────────────────────────
 
@@ -178,6 +209,9 @@ async function seed() {
   const MenuItemModel = mongoose.model('MenuItem', MenuItemSchema);
   const ThreadModel = mongoose.model('Thread', ThreadSchema);
   const MessageModel = mongoose.model('Message', MessageSchema);
+  const CustomerModel = mongoose.model('Customer', CustomerSchema);
+  const OrderModel = mongoose.model('Order', OrderSchema);
+  const BillModel = mongoose.model('Bill', BillSchema);
 
   const orgConfigs = [
     { name: 'Demo Restaurant', slug: 'demo', country: 'NG', currency: 'NGN' },
@@ -339,6 +373,73 @@ async function seed() {
         );
       }
       console.log(`  ✓ Category "${catalog.category.name}" — ${catalog.items.length} items`);
+    }
+
+    // 5. Seed Transactional Data for Dashboard (Demo Org Only)
+    if (config.slug === 'demo') {
+      console.log(`\n  Seeding Transactional Data (Orders/Bills)...`);
+      const menuItems = await MenuItemModel.find({ organizationId: org._id });
+      const waiter = users.find(u => u.role === Role.WAITER) || users[0];
+
+      // Create 5 Customers
+      const customers = [];
+      const customerData = [
+        { firstName: 'Alice', lastName: 'Johnson', phone: '08012345678', email: 'alice@example.com' },
+        { firstName: 'Bob', lastName: 'Smith', phone: '08087654321', email: 'bob@example.com' },
+        { firstName: 'Charlie', lastName: 'Brown', phone: '08055555555', email: 'charlie@example.com' },
+        { firstName: 'Diana', lastName: 'Prince', phone: '08011111111' },
+        { firstName: 'Ethan', lastName: 'Hunt', phone: '08099999999' }
+      ];
+
+      for (const c of customerData) {
+        const cust = await CustomerModel.findOneAndUpdate(
+          { organizationId: org._id, phone: c.phone },
+          { $set: { ...c, branchId: branch._id } },
+          { upsert: true, new: true }
+        );
+        customers.push(cust);
+      }
+      console.log(`  ✓ ${customers.length} customers seeded`);
+
+      // Create 20 Orders/Bills distributed across today and yesterday
+      const now = new Date();
+      for (let i = 0; i < 20; i++) {
+        const isYesterday = i < 8; // First 8 are from yesterday
+        const date = new Date();
+        if (isYesterday) date.setUTCDate(date.getUTCDate() - 1);
+        date.setUTCHours(9 + (i % 12), Math.floor(Math.random() * 60)); // Spread across 9AM to 9PM
+
+        const orderType = ['dine_in', 'takeaway', 'delivery'][i % 3];
+        const customer = customers[i % customers.length];
+        const randomItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+        
+        const totalAmount = randomItem.price.amount * 2;
+        
+        const order = await OrderModel.create({
+          organizationId: org._id,
+          branchId: branch._id,
+          staffId: waiter._id,
+          customerId: customer._id,
+          orderType,
+          status: 'completed',
+          total: { amount: totalAmount, currency: config.currency },
+          items: [{ name: randomItem.name, quantity: 2, lineTotal: { amount: totalAmount, currency: config.currency } }],
+          createdAt: date
+        });
+
+        await BillModel.create({
+          organizationId: org._id,
+          branchId: branch._id,
+          orderId: order._id,
+          staffId: waiter._id,
+          customerId: customer._id,
+          total: { amount: totalAmount, currency: config.currency },
+          status: 'paid',
+          paidAt: date,
+          createdAt: date
+        });
+      }
+      console.log(`  ✓ 20 Orders/Bills seeded across 48h`);
     }
   }
 

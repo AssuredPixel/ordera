@@ -12,7 +12,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { BranchesModule } from './modules/branches/branches.module';
 import { AIModule } from './modules/ai/ai.module';
-import { MessagesModule } from './modules/messages/messages.module';
+import { CustomersModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -47,7 +47,7 @@ import { MessagesModule } from './modules/messages/messages.module';
     DashboardModule,
     BranchesModule,
     AIModule,
-    MessagesModule,
+    CustomersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
