@@ -13,10 +13,10 @@
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+  --color-brand-light: #F5ECD9;
 
-  --font-display: "var(--font-dm-serif-display)", serif;
-  --font-body: "var(--font-dm-sans)", sans-serif;
-  --font-mono: "var(--font-jetbrains-mono)", monospace;
+  --font-display: "var(--font-display)", serif;
+  --font-sans: "var(--font-sans)", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +29,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
