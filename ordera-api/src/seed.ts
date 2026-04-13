@@ -285,20 +285,30 @@ async function seed() {
       ];
 
       for (const tConfig of threadConfigs) {
-        const thread = await ThreadModel.findOneAndUpdate(
-          { organizationId: org._id, branchId: branch._id, name: tConfig.name, type: tConfig.type, memberIds: { $all: tConfig.members, $size: tConfig.members.length } },
-          {
+        let thread = await ThreadModel.findOne({
+          organizationId: org._id,
+          branchId: branch._id,
+          name: tConfig.name,
+          type: tConfig.type,
+          memberIds: { $all: tConfig.members, $size: tConfig.members.length }
+        });
+
+        if (thread) {
+          thread = await ThreadModel.findByIdAndUpdate(thread._id, {
             $set: {
-              organizationId: org._id,
-              branchId: branch._id,
-              type: tConfig.type,
-              name: tConfig.name,
-              memberIds: tConfig.members,
               unreadCounts: tConfig.members.reduce((acc, id) => ({ ...acc, [id.toString()]: 0 }), {})
             }
-          },
-          { upsert: true, new: true }
-        );
+          }, { new: true });
+        } else {
+          thread = await ThreadModel.create({
+            organizationId: org._id,
+            branchId: branch._id,
+            type: tConfig.type,
+            name: tConfig.name,
+            memberIds: tConfig.members,
+            unreadCounts: tConfig.members.reduce((acc, id) => ({ ...acc, [id.toString()]: 0 }), {})
+          });
+        }
 
         // Add 5 messages
         const messages = [

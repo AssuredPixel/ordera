@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "sonner";
 
 const dmSans = DM_Sans({
@@ -28,10 +27,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
       <body className="antialiased font-sans">
-        <AuthProvider>
-          {children}
-          <Toaster position="bottom-right" richColors />
-        </AuthProvider>
+        {children}
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );

@@ -15,11 +15,11 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(salesId: string, password: string, metadata?: { deviceName?: string, location?: string }) {
-    // 1. Get the first organization (Phase 1)
-    const organization = await this.organizationModel.findOne();
+  async login(orgSlug: string, salesId: string, password: string, metadata?: { deviceName?: string, location?: string }) {
+    // 1. Get the specific organization
+    const organization = await this.organizationModel.findOne({ slug: orgSlug });
     if (!organization) {
-      throw new UnauthorizedException('No organization found in system');
+      throw new UnauthorizedException('Organization not found');
     }
 
     // 2. Find user by salesId and organizationId

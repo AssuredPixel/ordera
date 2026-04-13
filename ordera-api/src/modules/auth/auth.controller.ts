@@ -10,7 +10,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: any, @Res({ passthrough: true }) response: Response) {
-    const result = await this.authService.login(body.salesId, body.password, {
+    const result = await this.authService.login(body.orgSlug, body.salesId, body.password, {
       deviceName: body.deviceName,
       location: body.location
     });
