@@ -28,7 +28,8 @@ async function run() {
     await client.connect();
     const database = client.db('test'); // NestJS uses 'test' by default if not specified in URI path
     const users = database.collection('users');
-    const allUsers = await users.find({ salesId: { $in: ['1001', '2001', '3001', '4001'] } }).toArray();
+    const allUsers = await users.find({}).toArray();
+
     console.log('--- Seeded Users Found ---');
     allUsers.forEach(u => console.log(`- ${u.salesId}: ${u.name} (${u.role})`));
     console.log('Total count:', allUsers.length);

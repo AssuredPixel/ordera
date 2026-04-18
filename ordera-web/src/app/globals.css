@@ -1,66 +1,22 @@
 @import "tailwindcss";
 
-@layer theme {
-  :root {
-    --brand-amber: #C97B2A;
-    --brand-navy: #1A1A2E;
-    
-    --background: #FFFFFF;
-    --foreground: #1A1A1A;
-    
-    --surface: #F8F9FA;
-    --sidebar: #1A1A2E;
-    --card: #FFFFFF;
-    
-    --border: #E5E7EB;
-    --input: #E5E7EB;
-    
-    --brand: #C97B2A;
-    --brand-foreground: #FFFFFF;
-    
-    --muted: #F3F4F6;
-    --muted-foreground: #6B7280;
-    
-    --danger: #EF4444;
-    --success: #10B981;
-  }
-
-  .dark {
-    --background: #0F172A;
-    --foreground: #F8FAFC;
-    --card: #1E293B;
-  }
-}
-
 @theme {
-  --font-sans: "DM Sans", sans-serif;
-  --font-display: "DM Serif Display", serif;
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
   
-  --color-brand: var(--brand-amber);
-  --color-navy: var(--brand-navy);
-  --color-surface: var(--surface);
-  --color-sidebar: var(--sidebar);
-  --color-danger: var(--danger);
+  --color-brand: #C97B2A;
+  --color-brand-light: #F5ECD9;
+  --color-sidebar: #1A1A2E;
+  --color-surface: #F9FAFB;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-muted: #6B7280;
+  --color-border-light: #E5E7EB;
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
-  }
-}
-
-/* Custom Utilities */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-surface;
   }
 }

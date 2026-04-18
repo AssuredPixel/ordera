@@ -1,16 +1,26 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod, Controller, Get } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { PlatformModule } from './modules/platform/platform.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
+
+@Controller('ping')
+class PingController {
+  @Get()
+  ping() {
+    return { status: 'ok', time: new Date().toISOString() };
+  }
+}
 
 @Module({
   imports: [
-    // STEP 6 — ConfigModule first
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-    
-    // MongooseModule async setup
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -18,11 +28,18 @@ import { MongooseModule } from '@nestjs/mongoose';
       }),
       inject: [ConfigService],
     }),
-    
-    // Future modules
-    // IdentityModule,
+    PlatformModule,
+    OrganizationsModule,
+    UsersModule,
+    AuthModule,
   ],
-  controllers: [],
+  controllers: [PingController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SubdomainMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

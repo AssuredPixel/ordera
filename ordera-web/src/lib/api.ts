@@ -1,40 +1,56 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+export const TOKEN_KEY = 'ordera_token';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
-export const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
-// Request interceptor for auth token and multi-tenancy headers
-api.interceptors.request.use((config) => {
-  const token = Cookies.get("ordera_token");
+export const getToken = () => typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+export const setToken = (token: string) => localStorage.setItem(TOKEN_KEY, token);
+export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+async function request<T>(
+  method: string,
+  path: string,
+  body?: any
+): Promise<T> {
+  const token = getToken();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Multi-tenancy headers can be useful for additional API-side checks
-  // (though the API primarily uses the JWT payload)
-  return config;
-});
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
 
-// Response interceptor for handling 401s
-api.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Avoid redirect loops if already on login
-      if (!window.location.pathname.includes("/login")) {
-        const subdomain = window.location.pathname.split('/')[1] || 'demo';
-        Cookies.remove("ordera_token");
-        window.location.href = `/${subdomain}/login`;
-      }
+  if (response.status === 401) {
+    clearToken();
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
     }
-    return Promise.reject(error.response?.data || error.message);
   }
-);
+
+  if (!response.ok) {
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { message: `Request failed with status ${response.status}` };
+    }
+    throw new Error(errorData.message || 'API Request failed');
+  }
+
+
+  return response.json();
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>('GET', path),
+  post: <T>(path: string, body?: any) => request<T>('POST', path, body),
+  patch: <T>(path: string, body?: any) => request<T>('PATCH', path, body),
+  delete: <T>(path: string) => request<T>('DELETE', path),
+};

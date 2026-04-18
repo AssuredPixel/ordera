@@ -1,23 +1,23 @@
-import type { Metadata } from "next";
-import { DM_Sans, DM_Serif_Display } from "next/font/google";
-import "./globals.css";
-import { Providers } from "@/providers/providers";
-import { Toaster } from "sonner";
+import type { Metadata } from 'next';
+import { DM_Sans, DM_Serif_Display } from 'next/font/google';
+import './globals.css';
+import { Providers } from '../components/Providers';
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
+const sans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-sans',
 });
 
-const dmSerif = DM_Serif_Display({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-display",
+const display = DM_Serif_Display({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-display',
 });
 
 export const metadata: Metadata = {
-  title: "Ordera | Premium Restaurant POS SaaS",
-  description: "Modern, multi-tenant POS systems for world-class hospitality.",
+  title: 'Ordera | Premium Restaurant Management & SaaS',
+  description: 'The all-in-one platform for modern restaurant operations, multi-tenant billing, and AI-driven insights.',
 };
 
 export default function RootLayout({
@@ -26,12 +26,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmSerif.variable}`}>
-      <body className="antialiased">
-        <Providers>
-          {children}
-          <Toaster position="top-right" expand={false} richColors />
-        </Providers>
+    <html lang="en">
+      <body className={`${sans.variable} ${display.variable} font-sans antialiased text-muted`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

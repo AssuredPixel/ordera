@@ -3,5 +3,7 @@ export enum SubscriptionStatus {
   PAST_DUE = 'past_due',
   CANCELED = 'canceled',
   UNPAID = 'unpaid',
+  TRIAL = 'trial',
   TRIALING = 'trialing',
+  SUSPENDED = 'suspended',
 }
