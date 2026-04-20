@@ -15,6 +15,7 @@ import { PlatformSettingsService } from './platform-settings.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { SubscriptionPlan } from '../../common/enums/subscription-plan.enum';
 import { PaymentGateway } from '../../common/enums/payment-gateway.enum';
@@ -41,6 +42,7 @@ export class PlatformController {
     return this.settingsService.updateSettings(body);
   }
 
+  @Public()
   @Get('public/plans')
   async getPublicPlans() {
     return this.settingsService.getPublicPlans();

@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Loader2 } from 'lucide-react';
+import { DashboardHeader } from '@/components/common/DashboardHeader';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuthStore();
   const [isAuthorized, setIsAuthorized] = useState(false);
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     // SECURITY CHECK: Log current state for debugging (remove in production)
@@ -42,11 +45,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex bg-[#F8FAFC] min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 ml-[240px]">
-        {children}
-      </main>
+    <div className="flex bg-[#F8FAFC] min-h-screen relative">
+      {/* MOBILE BACKDROP */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-[260px]">
+        <DashboardHeader 
+          title="Super Admin" 
+          onMenuClick={() => setIsSidebarOpen(true)} 
+        />
+        <main className="p-4 md:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

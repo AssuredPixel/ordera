@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -33,8 +34,15 @@ export class AuthService {
 
     // 2. Subdomain check
     const subdomain = generateOrganizationSlug(dto.businessName);
-    const existingOrg = await this.orgService.findBySubdomain(subdomain);
-    if (existingOrg) throw new ConflictException('Business name already taken for subdomain');
+    try {
+      const existingOrg = await this.orgService.findBySubdomain(subdomain);
+      if (existingOrg) throw new ConflictException('Business name already taken for subdomain');
+    } catch (e: any) {
+      // If error is NOT a 404, then something else went wrong (e.g. database down, 500)
+      // If it IS a 404, it means the subdomain is available, so we continue.
+      const status = e.status || e.response?.statusCode || e.getStatus?.();
+      if (status !== 404) throw e;
+    }
 
     // 4. Hash password
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -44,6 +52,7 @@ export class AuthService {
       name: dto.businessName,
       subdomain,
       country: dto.country,
+      contactPhone: dto.contactPhone,
     });
 
     // 6. Create User
@@ -69,7 +78,7 @@ export class AuthService {
     return { 
       organization: org, 
       user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }, 
-      accessToken 
+      accessToken
     };
   }
 
@@ -88,13 +97,13 @@ export class AuthService {
 
     const sessionId = uuidv4();
     await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: dto.deviceName || 'Web' });
-
     const accessToken = await this.generateToken(user, subdomain);
+    const populatedOrg = org ? await this.orgService.findById(org._id as any) : null;
 
     return { 
       accessToken, 
       user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
-      organization: org 
+      organization: populatedOrg 
     };
   }
 

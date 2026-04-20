@@ -72,19 +72,19 @@ export class OrganizationsService {
           from: 'subscriptions',
           localField: 'subscriptionId',
           foreignField: '_id',
-          as: 'subscription'
+          as: 'subscriptionId'
         }
       },
-      { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$subscriptionId', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'users',
           localField: 'ownerUserId',
           foreignField: '_id',
-          as: 'owner'
+          as: 'ownerUserId'
         }
       },
-      { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } }
+      { $unwind: { path: '$ownerUserId', preserveNullAndEmptyArrays: true } }
     ];
 
     // Filter by Search (Name)
@@ -97,14 +97,14 @@ export class OrganizationsService {
     // Filter by Plan
     if (plan) {
       pipeline.push({
-        $match: { 'subscription.plan': plan.toLowerCase() }
+        $match: { 'subscriptionId.plan': plan.toLowerCase() }
       });
     }
 
     // Filter by Status
     if (status) {
       pipeline.push({
-        $match: { 'subscription.status': status.toLowerCase() }
+        $match: { 'subscriptionId.status': status.toLowerCase() }
       });
     }
 

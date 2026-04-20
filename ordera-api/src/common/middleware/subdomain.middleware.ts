@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware, NotFoundException } from '@nestjs/common';
+import { Injectable, NestMiddleware, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { OrganizationsService } from '../../modules/organizations/organizations.service';
 
@@ -38,10 +38,16 @@ export class SubdomainMiddleware implements NestMiddleware {
       req.subdomain = subdomain;
       try {
         const org = await this.orgService.findBySubdomain(subdomain);
+        
+        // Block access if organization is suspended
+        if (org && !org.isActive) {
+           throw new ForbiddenException('This organization has been suspended. Please contact support.');
+        }
+
         req.organization = org;
       } catch (e) {
+        if (e instanceof ForbiddenException) throw e;
         // If subdomain provided but org not found, we might want to throw or just proceed
-        // and let guards handle it. For now, just attach null.
         req.organization = null;
       }
     }

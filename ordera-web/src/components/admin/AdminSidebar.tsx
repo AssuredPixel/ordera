@@ -21,12 +21,20 @@ const navItems = [
   { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
 
   return (
-    <aside className="w-[240px] h-screen bg-[#1A1A2E] flex flex-col fixed left-0 top-0 overflow-hidden border-r border-white/5">
+    <aside className={`
+      w-[260px] h-screen bg-[#1A1A2E] flex flex-col fixed left-0 top-0 overflow-hidden border-r border-white/5 z-50 transition-transform duration-300
+      ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+    `}>
       {/* LOGO */}
       <div className="p-6 mb-4">
         <Image
@@ -47,6 +55,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => onClose?.()}
               className={`
                 h-12 flex items-center px-4 gap-3 rounded-lg transition-all group
                 ${isActive

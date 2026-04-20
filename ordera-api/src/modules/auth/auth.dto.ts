@@ -28,6 +28,10 @@ export class RegisterDto {
   @IsNotEmpty()
   country: string;
 
+  @IsString()
+  @IsOptional()
+  contactPhone?: string;
+
   @IsEnum(SubscriptionPlan)
   plan: SubscriptionPlan;
 

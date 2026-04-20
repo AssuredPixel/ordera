@@ -21,12 +21,12 @@ interface Organization {
   slug: string;
   country: string;
   createdAt: string;
-  owner?: {
+  ownerUserId?: {
     firstName: string;
     lastName: string;
     email: string;
   };
-  subscription?: {
+  subscriptionId?: {
     plan: string;
     status: string;
   };
@@ -131,7 +131,7 @@ export default function OrganizationsPage() {
       {/* TABLE */}
       <div className="bg-white rounded-xl border border-border-light shadow-sm overflow-hidden min-h-[500px]">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[800px] md:min-w-0">
             <thead>
               <tr className="bg-gray-50/80 border-b border-border-light text-[11px] font-bold uppercase tracking-wider text-muted">
                 <th className="px-6 py-4">Organization</th>
@@ -161,7 +161,7 @@ export default function OrganizationsPage() {
                 </tr>
               ) : (
                 data?.data.map((org) => {
-                  const subStatus = org.subscription?.status?.toUpperCase() || 'TRIAL';
+                  const subStatus = org.subscriptionId?.status?.toUpperCase() || 'TRIAL';
                   return (
                     <tr 
                       key={org._id} 
@@ -174,13 +174,13 @@ export default function OrganizationsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-sidebar">
-                          {org.owner?.firstName} {org.owner?.lastName}
+                          {org.ownerUserId?.firstName} {org.ownerUserId?.lastName}
                         </div>
-                        <div className="text-[11px] text-muted leading-tight">{org.owner?.email}</div>
+                        <div className="text-[11px] text-muted leading-tight">{org.ownerUserId?.email}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2 py-1 rounded bg-brand/10 text-brand text-[10px] font-bold uppercase tracking-tight">
-                          {org.subscription?.plan || 'Free'}
+                          {org.subscriptionId?.plan || 'Free'}
                         </span>
                       </td>
                       <td className="px-6 py-4">

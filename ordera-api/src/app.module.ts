@@ -1,4 +1,5 @@
 import { Module, MiddlewareConsumer, RequestMethod, Controller, Get } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PlatformModule } from './modules/platform/platform.module';
@@ -17,6 +18,7 @@ class PingController {
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

@@ -9,6 +9,7 @@ import { AIUsageService } from './ai-usage.service';
 import { PlatformSettings, PlatformSettingsSchema } from './platform-settings.schema';
 import { PlatformSettingsService } from './platform-settings.service';
 import { PlatformController } from './platform.controller';
+import { SubscriptionTaskService } from './subscription-task.service'; // Added automated cron service
 import { Organization, OrganizationSchema } from '../organizations/organization.schema';
 
 
@@ -24,7 +25,7 @@ import { Organization, OrganizationSchema } from '../organizations/organization.
 
   ],
   controllers: [PlatformController],
-  providers: [SubscriptionService, InvoiceService, AIUsageService, PlatformSettingsService],
+  providers: [SubscriptionService, InvoiceService, AIUsageService, PlatformSettingsService, SubscriptionTaskService],
   exports: [SubscriptionService, InvoiceService, AIUsageService, PlatformSettingsService],
 })
-export class PlatformModule {}
+export class PlatformModule { }

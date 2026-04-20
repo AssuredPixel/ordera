@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Logo } from './Logo';
+import { Menu, X } from 'lucide-react';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +16,9 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu when clicking a link
+  const closeMenu = () => setMobileMenuOpen(false);
 
   return (
     <header 
@@ -30,18 +35,44 @@ export function Navbar() {
           <Link href="/contact" className="text-sm font-medium text-muted hover:text-sidebar transition">Contact</Link>
         </nav>
 
-        <div className="flex items-center gap-6">
-          <Link href="/login" className="text-sm font-medium text-sidebar hover:text-brand transition">
-            Sign In
-          </Link>
-          <Link 
-            href="/pricing"
-            className="bg-brand text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-lg shadow-brand/10"
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-6">
+            <Link href="/login" className="text-sm font-medium text-sidebar hover:text-brand transition">
+              Sign In
+            </Link>
+            <Link 
+              href="/register"
+              className="bg-brand text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-lg shadow-brand/10"
+            >
+              Get Started
+            </Link>
+          </div>
+
+          {/* MOBILE TOGGLE */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-sidebar hover:bg-surface rounded-lg transition"
           >
-            Get Started
-          </Link>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
+
+      {/* MOBILE DRAWER */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-border-light shadow-xl animate-in slide-in-from-top duration-300">
+          <nav className="flex flex-col p-6 gap-4">
+            <Link href="/about" onClick={closeMenu} className="text-lg font-medium text-sidebar p-2 hover:bg-surface rounded-lg transition">About</Link>
+            <Link href="/#pricing" onClick={closeMenu} className="text-lg font-medium text-sidebar p-2 hover:bg-surface rounded-lg transition">Pricing</Link>
+            <Link href="/contact" onClick={closeMenu} className="text-lg font-medium text-sidebar p-2 hover:bg-surface rounded-lg transition">Contact</Link>
+            <hr className="border-border-light my-2" />
+            <Link href="/login" onClick={closeMenu} className="text-lg font-medium text-brand p-2 hover:bg-brand/5 rounded-lg transition">Sign In</Link>
+            <Link href="/register" onClick={closeMenu} className="w-full bg-brand text-white text-center py-4 rounded-xl font-bold shadow-lg shadow-brand/10 transition mt-2">
+              Start Free Trial
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

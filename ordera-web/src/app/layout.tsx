@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${display.variable} font-sans antialiased text-muted`}>
+      <body className={`${sans.variable} ${display.variable} font-sans antialiased text-muted overflow-x-hidden`}>
         <Providers>{children}</Providers>
       </body>
     </html>

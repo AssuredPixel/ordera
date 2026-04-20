@@ -41,9 +41,9 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 text-center md:text-left">
           <p>© 2026 Ordera Platform. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
             <span>Built by Lawrence</span>
             <span>Based in Lagos, Nigeria</span>
           </div>

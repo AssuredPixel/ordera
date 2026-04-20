@@ -48,32 +48,32 @@ export default function MarketingPage() {
             </div>
           </div>
 
-          <h1 className="font-display text-white text-6xl md:text-8xl leading-[0.9] mb-8 max-w-4xl mx-auto tracking-tight">
+          <h1 className="font-display text-white text-4xl sm:text-6xl md:text-8xl leading-[1.1] md:leading-[0.9] mb-8 max-w-4xl mx-auto tracking-tight px-4">
             Every table. Every order.<br />
             Every branch. <span className="text-brand">One platform.</span>
           </h1>
 
-          <p className="text-gray-400 text-xl max-w-xl mx-auto mb-10 leading-relaxed font-sans">
+          <p className="text-gray-400 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-sans px-6">
             Ordera gives restaurant owners complete visibility across every branch — 
             and gives their staff the simplest POS system they have ever used.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-20">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-20 px-6">
             <Link 
               href="/register" 
-              className="h-14 px-10 bg-brand text-white rounded-xl font-bold flex items-center justify-center hover:bg-opacity-90 transition-all shadow-xl shadow-brand/20"
+              className="h-14 px-10 bg-brand text-white rounded-xl font-bold flex items-center justify-center hover:bg-opacity-90 transition-all shadow-xl shadow-brand/20 w-full sm:w-auto"
             >
               Start Free Trial
             </Link>
-            <button className="h-14 px-10 border border-white/20 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/5 transition-all">
+            <button className="h-14 px-10 border border-white/20 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/5 transition-all w-full sm:w-auto">
               See How It Works <ArrowDown className="w-4 h-4" />
             </button>
           </div>
 
           {/* HERO VISUAL — Tilted Dashboard Mock */}
-          <div className="relative max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-10 duration-1000">
+          <div className="relative max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-10 duration-1000 mt-12 sm:mt-0">
             <div className="absolute inset-0 bg-brand/20 blur-[120px] rounded-full scale-75 -z-10" />
-            <div className="bg-[#1A1A2E] border border-white/10 rounded-2xl p-2 shadow-2xl transform -rotate-1 skew-x-1">
+            <div className="bg-[#1A1A2E] border border-white/10 rounded-2xl p-2 shadow-2xl transform sm:-rotate-1 sm:skew-x-1">
               <div className="bg-sidebar-light rounded-xl overflow-hidden aspect-[16/9] border border-white/5 relative">
                 {/* Mock UI Elements */}
                 <div className="absolute top-0 left-0 w-full h-12 bg-white/5 border-b border-white/5 flex items-center px-4 gap-2">
