@@ -7,7 +7,7 @@ import { RegisterDto, LoginDto } from './auth.dto';
 import { Role } from '../../common/enums/role.enum';
 import { generateOrganizationSlug } from '../organizations/organization.schema';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
@@ -141,7 +141,7 @@ export class AuthService {
     const org = user.organizationId ? await this.orgService.findById(user.organizationId as any) : null;
     const subdomain = org ? org.subdomain : null;
 
-    const sessionId = uuidv4();
+    const sessionId = randomUUID();
     await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: dto.deviceName || 'Web' });
     const accessToken = await this.generateToken(user, subdomain);
     const populatedOrg = org ? await this.orgService.findById(org._id as any) : null;
@@ -180,7 +180,7 @@ export class AuthService {
       const org = user.organizationId ? await this.orgService.findById(user.organizationId as any) : null;
       const accessToken = await this.generateToken(user, org?.subdomain || null);
 
-      const sessionId = uuidv4();
+      const sessionId = randomUUID();
       await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: 'Google OAuth' });
 
       return { accessToken, user, organization: org };

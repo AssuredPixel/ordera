@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { Invitation } from './invitation.schema';
 import { InvitationStatus } from '../../common/enums/invitation-status.enum';
 import { Resend } from 'resend';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class InvitationsService {
       throw new BadRequestException('Cannot invite users as Super Admin or Owner');
     }
 
-    const token = uuidv4();
+    const token = randomUUID();
     
     // Check if there is already a pending invitation for this email in this branch
     const existing = await this.invitationModel.findOne({
@@ -107,7 +107,7 @@ export class InvitationsService {
       throw new BadRequestException('Cannot resend a non-pending invitation');
     }
 
-    invitation.token = uuidv4();
+    invitation.token = randomUUID();
     invitation.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     invitation.resentCount += 1;
     await invitation.save();
