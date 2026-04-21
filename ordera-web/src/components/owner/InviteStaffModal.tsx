@@ -14,7 +14,7 @@ interface InviteStaffModalProps {
   onSuccess: () => void;
 }
 
-export function InviteStaffModal({ isOpen, onClose, branchId, onSuccess }: InviteStaffModalProps) {
+export function InviteStaffModal({ isOpen, onClose, branchId, branches, onSuccess }: InviteStaffModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
