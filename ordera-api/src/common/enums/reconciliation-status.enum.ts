@@ -1,5 +1,6 @@
 export enum ReconciliationStatus {
-  PENDING = 'pending',
-  RECONCILED = 'reconciled',
-  DISPUTED = 'disputed',
+  OPEN = 'OPEN',
+  IN_REVIEW = 'IN_REVIEW',
+  COMPLETED = 'COMPLETED',
+  FLAGGED = 'FLAGGED',
 }

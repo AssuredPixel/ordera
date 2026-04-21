@@ -1,8 +1,5 @@
 export enum PaymentMethod {
-  CASH = 'cash',
-  POS = 'pos',
-  TRANSFER = 'transfer',
-  ONLINE = 'online',
-  QR = 'qr',
-  WALLET = 'wallet',
+  CASH = 'CASH',
+  CARD = 'CARD',
+  TRANSFER = 'TRANSFER',
 }
