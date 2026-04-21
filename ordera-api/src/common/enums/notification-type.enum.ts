@@ -7,4 +7,5 @@ export enum NotificationType {
   PAYMENT = 'payment',
   LOW_STOCK = 'low_stock',
   FINISHED_STOCK = 'finished_stock',
+  ORDER_READY = 'ORDER_READY',
 }

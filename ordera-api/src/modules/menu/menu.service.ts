@@ -141,7 +141,7 @@ export class MenuService {
         await this.notificationsService.createNotification({
           organizationId: item.organizationId,
           branchId: item.branchId,
-          userId: manager._id as Types.ObjectId,
+          recipientUserId: manager._id as Types.ObjectId,
           type,
           title,
           body,

@@ -13,6 +13,7 @@ import { OwnerModule } from './modules/owner/owner.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MenuModule } from './modules/menu/menu.module';
+import { OrderingModule } from './modules/ordering/ordering.module';
 import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
 
 @Controller('ping')
@@ -48,6 +49,7 @@ class PingController {
     BillingModule,
     NotificationsModule,
     MenuModule,
+    OrderingModule,
   ],
   controllers: [PingController],
   providers: [],
