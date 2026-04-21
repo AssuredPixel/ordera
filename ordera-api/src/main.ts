@@ -16,15 +16,27 @@ async function bootstrap() {
   
   app.use(cookieParser());
   
-  // CORS: allow FRONTEND_URL (Step 7) or fallback to dev local
+  // CORS: allow FRONTEND_URL or allow all for production
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || '*',
     credentials: true,
   });
 
   const port = process.env.PORT || 3001;
-  await app.listen(port);
-  console.log(`[Ordera API v3] Server running on: http://localhost:${port}/api`);
+  
+  // Only listen if we are NOT on Vercel
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    await app.listen(port);
+    console.log(`[Ordera API v3] Server running on: http://localhost:${port}/api`);
+  }
+  
+  return app.getHttpAdapter().getInstance();
 }
 
-bootstrap();
+// For local development
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  bootstrap();
+}
+
+// Export for Vercel
+export default bootstrap;
