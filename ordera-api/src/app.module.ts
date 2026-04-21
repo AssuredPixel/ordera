@@ -11,6 +11,8 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
 import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { OwnerModule } from './modules/owner/owner.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MenuModule } from './modules/menu/menu.module';
 import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
 
 @Controller('ping')
@@ -44,6 +46,8 @@ class PingController {
     SchedulingModule,
     OwnerModule,
     BillingModule,
+    NotificationsModule,
+    MenuModule,
   ],
   controllers: [PingController],
   providers: [],

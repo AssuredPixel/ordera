@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from './user.schema';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -76,5 +77,13 @@ export class UsersService {
       { $set: { isActive: false } },
       { new: true }
     );
+  }
+
+  async findManagersByBranch(branchId: string): Promise<User[]> {
+    return this.userModel.find({
+      branchId: new Types.ObjectId(branchId),
+      role: Role.BRANCH_MANAGER,
+      isActive: true,
+    });
   }
 }
