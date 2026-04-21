@@ -81,12 +81,12 @@ export default function LoginPage() {
 
   return (
     <AuthSplitLayout>
-      <div className="mb-10 text-center lg:text-left">
-        <h1 className="font-display text-[28px] text-sidebar">Welcome back.</h1>
-        <p className="text-muted mt-2">Sign in to your Ordera account.</p>
+      <div className="mb-8 sm:mb-10 text-center lg:text-left">
+        <h1 className="font-display text-2xl sm:text-[28px] text-sidebar">Welcome back.</h1>
+        <p className="text-muted text-sm sm:text-base mt-2">Sign in to your Ordera account.</p>
       </div>
 
-      <div className="bg-white rounded-[16px] shadow-sm border border-border-light p-8">
+      <div className="bg-white rounded-[16px] shadow-sm border border-border-light p-6 sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-sidebar">Email address</label>

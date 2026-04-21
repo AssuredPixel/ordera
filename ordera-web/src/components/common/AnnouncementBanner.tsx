@@ -11,11 +11,11 @@ export function AnnouncementBanner() {
   useEffect(() => {
     async function fetchAnnouncement() {
       try {
-        const data = await api.get<any>('/api/platform/settings');
-        if (data?.announcement?.isActive && data?.announcement?.text) {
+        const data = await api.get<any>('/api/platform/public/announcement');
+        if (data?.isActive && data?.text) {
           const dismissedVersion = localStorage.getItem('ordera_announcement_dismissed');
-          if (dismissedVersion !== data.announcement.version?.toString()) {
-            setAnnouncement(data.announcement);
+          if (dismissedVersion !== data.version?.toString()) {
+            setAnnouncement(data);
             setIsVisible(true);
           }
         }
@@ -36,12 +36,12 @@ export function AnnouncementBanner() {
   if (!isVisible || !announcement) return null;
 
   return (
-    <div className="bg-orange-500 text-white px-4 py-2.5 flex items-center justify-between gap-4 animate-in slide-in-from-top duration-500 shadow-lg relative z-50">
-      <div className="flex items-center gap-3 max-w-4xl mx-auto">
+    <div className="bg-orange-500 text-white px-4 py-2.5 flex sm:flex-row flex-col items-center justify-between gap-3 sm:gap-4 animate-in slide-in-from-top duration-500 shadow-lg relative z-50">
+      <div className="flex items-center gap-3 max-w-4xl mx-auto w-full sm:w-auto">
         <div className="bg-white/20 p-1.5 rounded-lg shrink-0">
           <Megaphone size={16} />
         </div>
-        <p className="text-sm font-bold leading-tight">
+        <p className="text-xs sm:text-sm font-bold leading-tight line-clamp-2 sm:line-clamp-none">
           {announcement.text}
         </p>
       </div>

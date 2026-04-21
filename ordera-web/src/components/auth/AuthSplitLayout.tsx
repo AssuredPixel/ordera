@@ -51,7 +51,7 @@ export function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="w-full lg:w-[55%] flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto relative">
+      <div className="w-full lg:w-[55%] flex flex-col items-center justify-center px-4 py-10 md:p-12 overflow-y-auto relative">
         <div className="w-full max-w-[480px]">
           <Link 
             href="/" 

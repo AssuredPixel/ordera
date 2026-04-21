@@ -1,6 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+@Schema({ _id: false })
+class SocialLinks {
+  @Prop() instagram?: string;
+  @Prop() facebook?: string;
+  @Prop() twitter?: string;
+  @Prop() linkedin?: string;
+  @Prop() whatsapp?: string;
+}
+
 @Schema({ timestamps: true })
 export class Organization extends Document {
   @Prop({ required: true, trim: true })
@@ -34,10 +43,16 @@ export class Organization extends Document {
   subscriptionId: Types.ObjectId;
 
   @Prop()
-  contactEmail: string;
+  contactPhone: string;
 
   @Prop()
-  contactPhone: string;
+  address: string;
+
+  @Prop({ default: '#7C3AED' }) // Default brand purple
+  primaryColor: string;
+
+  @Prop({ type: SocialLinks, default: () => ({}) })
+  socialLinks: SocialLinks;
 }
 
 export const OrganizationSchema = SchemaFactory.createForClass(Organization);

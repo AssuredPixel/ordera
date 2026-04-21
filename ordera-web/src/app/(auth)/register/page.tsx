@@ -138,28 +138,28 @@ function RegisterContent() {
 
   return (
     <AuthSplitLayout>
-      <div className="mb-10">
-        <h1 className="font-display text-[28px] text-sidebar">Create your account</h1>
-        <p className="text-muted mt-2">Start your 14-day free trial. No credit card required.</p>
+      <div className="mb-8 sm:mb-10 text-center lg:text-left">
+        <h1 className="font-display text-2xl sm:text-[28px] text-sidebar">Create your account</h1>
+        <p className="text-muted text-sm sm:text-base mt-2">Start your 14-day free trial. No credit card required.</p>
       </div>
 
       {/* STEP INDICATOR */}
-      <div className="flex items-center gap-2 mb-10">
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-8 sm:mb-10">
         {[
           { id: 1, label: 'Account', icon: User },
           { id: 2, label: 'Business', icon: Building2 },
           { id: 3, label: 'Plan', icon: CreditCard }
         ].map((s, i) => (
           <div key={s.id} className="flex items-center flex-1">
-            <div className="flex flex-col items-center gap-2 flex-1">
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2 flex-1">
               <div className={`h-1.5 w-full rounded-full transition-colors ${step === s.id ? 'bg-brand' : step > s.id ? 'bg-success' : 'bg-border-light'
                 }`} />
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${step === s.id ? 'text-brand' : step > s.id ? 'text-success' : 'text-muted'
+              <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-widest ${step === s.id ? 'text-brand' : step > s.id ? 'text-success' : 'text-muted'
                 }`}>
-                {s.id} {s.label}
+                <span className="hidden xs:inline">{s.id} </span>{s.label}
               </span>
             </div>
-            {i < 2 && <div className="w-4" />}
+            {i < 2 && <div className="w-2 sm:w-4" />}
           </div>
         ))}
       </div>
@@ -168,8 +168,8 @@ function RegisterContent() {
       <form onSubmit={step === 3 ? handleSubmit : (e) => e.preventDefault()}>
         {/* STEP 1: ACCOUNT */}
         {step === 1 && (
-          <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl border border-border-light p-5 sm:p-8 space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-sidebar">First Name</label>
                 <input
@@ -275,7 +275,7 @@ function RegisterContent() {
 
         {/* STEP 2: BUSINESS */}
         {step === 2 && (
-          <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="bg-white rounded-2xl border border-border-light p-5 sm:p-8 space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
               <label className="text-sm font-medium text-sidebar">Business Name</label>
               <input
@@ -315,7 +315,7 @@ function RegisterContent() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-sidebar">Contact Phone</label>
               <div className="flex gap-2">
-                <div className="flex items-center px-4 bg-surface border border-border-light rounded-lg text-sm font-medium text-sidebar">
+                <div className="flex items-center px-3 sm:px-4 bg-surface border border-border-light rounded-lg text-xs sm:text-sm font-medium text-sidebar shrink-0">
                   +234
                 </div>
                 <input
@@ -350,7 +350,7 @@ function RegisterContent() {
 
         {/* STEP 3: PLAN */}
         {step === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="bg-white rounded-2xl border border-border-light p-5 sm:p-8 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="grid gap-3">
               {PLANS.map((plan) => (
                 <div
@@ -361,16 +361,17 @@ function RegisterContent() {
                       : 'border-border-light bg-white hover:border-brand/20'
                     }`}
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                      <p className={`text-xs font-bold uppercase tracking-widest ${formData.plan === plan.id ? 'text-brand' : 'text-muted'
+                      <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest ${formData.plan === plan.id ? 'text-brand' : 'text-muted'
                         }`}>
                         {plan.name}
                       </p>
-                      <h4 className="text-sidebar font-bold text-lg">₦{plan.price}<span className="text-xs font-normal text-muted">/mo</span></h4>
+                      <h4 className="text-sidebar font-bold text-base sm:text-lg">₦{plan.price}<span className="text-[10px] sm:text-xs font-normal text-muted">/mo</span></h4>
                     </div>
-                    <div className="text-right text-xs text-muted leading-tight">
+                    <div className="flex sm:flex-col gap-2 sm:gap-0 text-left sm:text-right text-[10px] sm:text-xs text-muted leading-tight">
                       <p>{plan.branches}</p>
+                      <span className="sm:hidden opacity-30">|</span>
                       <p>{plan.staff}</p>
                     </div>
                   </div>
@@ -381,20 +382,20 @@ function RegisterContent() {
             <div className="space-y-4">
               <div 
                 onClick={() => setFormData(prev => ({ ...prev, gateway: 'paystack' }))}
-                className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                className={`p-3 sm:p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                 formData.gateway === 'paystack' ? 'border-brand bg-brand/5' : 'border-border-light bg-white'
               }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.gateway === 'paystack' ? 'bg-[#00D09C]/10' : 'bg-surface'}`}>
-                    <Check className={formData.gateway === 'paystack' ? 'text-[#00D09C]' : 'text-gray-300'} size={20} />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 ${formData.gateway === 'paystack' ? 'bg-[#00D09C]/10' : 'bg-surface'}`}>
+                    <Check className={formData.gateway === 'paystack' ? 'text-[#00D09C]' : 'text-gray-300'} size={18} />
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-sidebar">Paystack</p>
-                    <p className="text-[10px] text-muted font-medium uppercase tracking-tight">African Payments</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-sidebar truncate">Paystack</p>
+                    <p className="text-[9px] sm:text-[10px] text-muted font-medium uppercase tracking-tight truncate">African Payments</p>
                   </div>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="bg-[#00D09C] text-white p-1 rounded font-bold text-[8px] tracking-tighter">PAYSTACK</div>
+                <div className="flex flex-col items-center gap-1 shrink-0">
+                  <div className="bg-[#00D09C] text-white px-1 py-0.5 rounded font-bold text-[7px] sm:text-[8px] tracking-tighter">PAYSTACK</div>
                   <div className="flex gap-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#00D09C]/40" />
                     <div className="w-1.5 h-1.5 rounded-full bg-[#00D09C]" />
@@ -404,20 +405,20 @@ function RegisterContent() {
 
               <div 
                 onClick={() => setFormData(prev => ({ ...prev, gateway: 'stripe' }))}
-                className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                className={`p-3 sm:p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                 formData.gateway === 'stripe' ? 'border-brand bg-brand/5' : 'border-border-light bg-white opacity-70'
               }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.gateway === 'stripe' ? 'bg-[#635BFF]/10' : 'bg-surface'}`}>
-                    <Check className={formData.gateway === 'stripe' ? 'text-[#635BFF]' : 'text-gray-300'} size={20} />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 ${formData.gateway === 'stripe' ? 'bg-[#635BFF]/10' : 'bg-surface'}`}>
+                    <Check className={formData.gateway === 'stripe' ? 'text-[#635BFF]' : 'text-gray-300'} size={18} />
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-sidebar">Stripe</p>
-                    <p className="text-[10px] text-muted font-medium uppercase tracking-tight">International Cards</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-sidebar truncate">Stripe</p>
+                    <p className="text-[9px] sm:text-[10px] text-muted font-medium uppercase tracking-tight truncate">International</p>
                   </div>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="bg-[#635BFF] text-white p-1 rounded font-bold text-[8px] tracking-tighter">STRIPE</div>
+                <div className="flex flex-col items-center gap-1 shrink-0">
+                  <div className="bg-[#635BFF] text-white px-1 py-0.5 rounded font-bold text-[7px] sm:text-[8px] tracking-tighter">STRIPE</div>
                   <div className="flex gap-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#635BFF]/40" />
                     <div className="w-1.5 h-1.5 rounded-full bg-[#635BFF]" />

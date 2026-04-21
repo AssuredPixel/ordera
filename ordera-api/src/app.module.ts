@@ -6,6 +6,11 @@ import { PlatformModule } from './modules/platform/platform.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BranchesModule } from './modules/branches/branches.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
+import { SchedulingModule } from './modules/scheduling/scheduling.module';
+import { OwnerModule } from './modules/owner/owner.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
 
 @Controller('ping')
@@ -34,6 +39,11 @@ class PingController {
     OrganizationsModule,
     UsersModule,
     AuthModule,
+    BranchesModule,
+    InvitationsModule,
+    SchedulingModule,
+    OwnerModule,
+    BillingModule,
   ],
   controllers: [PingController],
   providers: [],

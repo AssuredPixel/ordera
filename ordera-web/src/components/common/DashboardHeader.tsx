@@ -4,25 +4,27 @@ import { Menu, Bell, Search, User } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
 interface DashboardHeaderProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
   title: string;
+  actions?: React.ReactNode;
 }
 
-export function DashboardHeader({ onMenuClick, title }: DashboardHeaderProps) {
+export function DashboardHeader({ onMenuClick, title, actions }: DashboardHeaderProps) {
   const { user } = useAuthStore();
 
   return (
-    <header className="h-16 border-b border-border-light bg-white px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
-      <div className="flex items-center gap-4">
+    <header className="h-16 border-b border-border-light bg-white px-3 md:px-8 flex items-center justify-between sticky top-0 z-30 w-full overflow-hidden">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <button 
           onClick={onMenuClick}
-          className="lg:hidden p-2 hover:bg-surface rounded-lg transition text-sidebar"
+          className="lg:hidden p-2 hover:bg-surface rounded-lg transition text-sidebar shrink-0"
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
-        <h1 className="text-lg font-bold text-sidebar md:text-xl truncate max-w-[200px] md:max-w-none">
+        <h1 className="text-base font-bold text-sidebar md:text-xl truncate min-w-0">
           {title}
         </h1>
+        {actions && <div className="hidden md:block">{actions}</div>}
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">

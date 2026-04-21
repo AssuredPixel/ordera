@@ -11,6 +11,8 @@ import { PlatformSettingsService } from './platform-settings.service';
 import { PlatformController } from './platform.controller';
 import { SubscriptionTaskService } from './subscription-task.service'; // Added automated cron service
 import { Organization, OrganizationSchema } from '../organizations/organization.schema';
+import { Branch, BranchSchema } from '../branches/branch.schema';
+import { User, UserSchema } from '../users/user.schema';
 
 
 @Module({
@@ -21,6 +23,8 @@ import { Organization, OrganizationSchema } from '../organizations/organization.
       { name: Organization.name, schema: OrganizationSchema },
       { name: AIUsage.name, schema: AIUsageSchema },
       { name: PlatformSettings.name, schema: PlatformSettingsSchema },
+      { name: Branch.name, schema: BranchSchema },
+      { name: User.name, schema: UserSchema },
     ]),
 
   ],

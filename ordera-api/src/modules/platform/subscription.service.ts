@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Subscription } from './subscription.schema';
 import { Organization } from '../organizations/organization.schema';
+import { Branch } from '../branches/branch.schema';
+import { User } from '../users/user.schema';
 
 import { SubscriptionPlan } from '../../common/enums/subscription-plan.enum';
 import { SubscriptionStatus } from '../../common/enums/subscription-status.enum';
@@ -13,6 +15,8 @@ export class SubscriptionService {
   constructor(
     @InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>,
     @InjectModel(Organization.name) private orgModel: Model<Organization>,
+    @InjectModel(Branch.name) private branchModel: Model<Branch>,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) { }
   
   async findAllFiltered(query: { search?: string; plan?: string; status?: string; gateway?: string; page: number; limit: number }) {
@@ -254,6 +258,44 @@ export class SubscriptionService {
       case SubscriptionPlan.FEAST: return 9999; // FEAST = PRO
       case SubscriptionPlan.FREE: return 2;
       default: return 5;
+    }
+  }
+
+  async getOrganizationUsage(organizationId: string) {
+    const orgObjectId = new Types.ObjectId(organizationId);
+    const [branches, staffCount] = await Promise.all([
+      this.branchModel.countDocuments({ organizationId: orgObjectId }),
+      this.userModel.countDocuments({
+        organizationId: orgObjectId,
+        role: { $in: ['branch_manager', 'supervisor', 'cashier', 'waiter', 'kitchen_staff'] },
+        isActive: true,
+      }),
+    ]);
+
+    const subscription = await this.findByOrganization(organizationId);
+    
+    return {
+      branches: {
+        used: branches,
+        limit: this.getBranchLimit(subscription.plan),
+      },
+      staff: {
+        used: staffCount,
+        limit: this.getStaffLimit(subscription.plan),
+      },
+      plan: subscription.plan,
+      status: subscription.status,
+    };
+  }
+
+  async enforceLimits(organizationId: string, type: 'branch' | 'staff') {
+    const usage = await this.getOrganizationUsage(organizationId);
+    const current = type === 'branch' ? usage.branches : usage.staff;
+    
+    if (current.used >= current.limit) {
+      throw new BadRequestException(
+        `Subscription limit reached. Your current plan allows up to ${current.limit} ${type}es. Please upgrade your plan.`
+      );
     }
   }
 }

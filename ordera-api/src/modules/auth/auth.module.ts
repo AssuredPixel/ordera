@@ -8,6 +8,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { PlatformModule } from '../platform/platform.module';
+import { InvitationsModule } from '../invitations/invitations.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PlatformModule } from '../platform/platform.module';
     UsersModule,
     OrganizationsModule,
     PlatformModule,
+    InvitationsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

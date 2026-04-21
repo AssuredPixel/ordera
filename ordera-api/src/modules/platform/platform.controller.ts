@@ -48,6 +48,12 @@ export class PlatformController {
     return this.settingsService.getPublicPlans();
   }
 
+  @Public()
+  @Get('public/announcement')
+  async getPublicAnnouncement() {
+    return this.settingsService.getAnnouncement();
+  }
+
   @Get('stats')
   @Roles(Role.SUPER_ADMIN)
   async getStats() {

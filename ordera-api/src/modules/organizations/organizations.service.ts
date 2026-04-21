@@ -154,4 +154,14 @@ export class OrganizationsService {
   async updateSubscription(orgId: string, subscriptionId: string) {
     return this.orgModel.findByIdAndUpdate(orgId, { subscriptionId: new Types.ObjectId(subscriptionId) });
   }
+
+  async update(orgId: string, data: Partial<Organization>) {
+    const org = await this.orgModel.findByIdAndUpdate(
+      orgId,
+      { $set: data },
+      { new: true }
+    );
+    if (!org) throw new NotFoundException('Organization not found');
+    return org.populate(['ownerUserId', 'subscriptionId']);
+  }
 }

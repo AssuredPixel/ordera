@@ -11,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { InvitationsService } from '../invitations/invitations.service';
+import { InvitationStatus } from '../../common/enums/invitation-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +24,7 @@ export class AuthService {
     private readonly subService: SubscriptionService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly invitationService: InvitationsService,
   ) {
     this.googleClient = new OAuth2Client(this.configService.get('GOOGLE_CLIENT_ID'));
   }
@@ -79,6 +82,49 @@ export class AuthService {
       organization: org, 
       user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }, 
       accessToken
+    };
+  }
+
+  // 1.5. POST /api/auth/register-staff
+  async registerStaff(body: { token: string; password: string }) {
+    // 1. Validate token
+    const { valid, data: invitation } = await this.invitationService.validateToken(body.token);
+    if (!valid || !invitation) {
+      throw new UnauthorizedException('Invalid or expired invitation token');
+    }
+
+    // 2. Check if email somehow already exists (in case they signed up another way after invite)
+    const existingUser = await this.usersService.findByEmail(invitation.email);
+    if (existingUser) {
+      throw new ConflictException('User already registered');
+    }
+
+    // 3. Create the user
+    const passwordHash = await bcrypt.hash(body.password, 12);
+    const user = await this.usersService.create({
+      organizationId: invitation.organizationId as any,
+      branchId: invitation.branchId as any,
+      email: invitation.email,
+      passwordHash,
+      role: invitation.role,
+      firstName: invitation.firstName,
+      lastName: invitation.lastName,
+    });
+
+    // 4. Mark invitation as accepted
+    invitation.status = InvitationStatus.ACCEPTED;
+    invitation.acceptedAt = new Date();
+    invitation.acceptedByUserId = user._id as any;
+    await invitation.save();
+
+    // 5. Login the user automatically
+    const org = await this.orgService.findById(user.organizationId as any);
+    const accessToken = await this.generateToken(user, org?.subdomain || null);
+
+    return {
+      accessToken,
+      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
+      organization: org
     };
   }
 
