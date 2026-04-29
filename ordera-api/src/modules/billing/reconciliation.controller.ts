@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -66,5 +67,11 @@ export class ReconciliationController {
   @Roles(Role.BRANCH_MANAGER, Role.CASHIER)
   async complete(@Param('id') id: string, @GetUser('branchId') branchId: string) {
     return this.reconService.complete(id, branchId);
+  }
+
+  @Delete(':id')
+  @Roles(Role.BRANCH_MANAGER, Role.OWNER)
+  async delete(@Param('id') id: string, @GetUser('branchId') branchId: string) {
+    return this.reconService.delete(id, branchId);
   }
 }

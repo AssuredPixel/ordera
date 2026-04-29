@@ -169,4 +169,17 @@ export class ReconciliationService {
   async findAll(branchId: string) {
     return this.reconModel.find({ branchId: new Types.ObjectId(branchId) }).sort({ createdAt: -1 });
   }
+
+  async delete(id: string, branchId: string) {
+    const recon = await this.reconModel.findOne({ _id: id, branchId });
+    if (!recon) throw new NotFoundException('Reconciliation not found');
+    if (recon.status === ReconciliationStatus.COMPLETED) {
+      throw new BadRequestException('Cannot delete a completed reconciliation');
+    }
+
+    // Unlink bills
+    await this.billModel.updateMany({ reconciliationId: recon._id }, { $unset: { reconciliationId: 1 } });
+    
+    return this.reconModel.deleteOne({ _id: id });
+  }
 }

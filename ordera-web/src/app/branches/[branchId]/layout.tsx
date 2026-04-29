@@ -46,8 +46,15 @@ export default function BranchLayout({
     enabled: !!branchId && isAuthenticated,
   });
 
-  if (!isAuthenticated) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
+  // Hydration safeguard: return a consistent loading state on server and first client render
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center animate-pulse" />;
+  }
+
+  if (!isAuthenticated) return null;
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
       <ManagerSidebar 

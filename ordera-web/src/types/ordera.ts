@@ -86,3 +86,57 @@ export interface Invitation {
   status: string;
   createdAt: string;
 }
+
+export enum OrderType {
+  DINE_IN = 'DINE_IN',
+  TAKEAWAY = 'TAKEAWAY',
+  DELIVERY = 'DELIVERY',
+}
+
+export interface OrderItem {
+  _id: string;
+  menuItemId: string;
+  name: string;
+  quantity: number;
+  unitPrice: Money;
+  lineTotal: Money;
+  notes?: string;
+  selectedAddons?: { name: string; price: Money }[];
+}
+
+export interface Order {
+  _id: string;
+  tableNumber?: string;
+  waiterName: string;
+  status: OrderStatus;
+  orderType: OrderType;
+  guestCount: number;
+  customerName?: string;
+  items: OrderItem[];
+  subtotal: Money;
+  tax: Money;
+  total: Money;
+  createdAt: string;
+}
+
+export enum StockStatus {
+  AVAILABLE = 'available',
+  LOW = 'low',
+  FINISHED = 'finished',
+}
+
+export interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+}
+
+export interface MenuItem {
+  _id: string;
+  name: string;
+  price: Money;
+  stockStatus: StockStatus;
+  categoryId: string;
+  isActive: boolean;
+}

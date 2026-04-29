@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Query,
@@ -50,5 +51,26 @@ export class MessagesController {
       parseInt(page || '1'),
       parseInt(limit || '50'),
     );
+  }
+
+  @Post('threads/:id/messages')
+  async sendMessage(
+    @Param('id') threadId: string,
+    @GetUser() user: any,
+    @Body('content') content: string,
+    @Body('attachmentUrl') attachmentUrl?: string,
+  ) {
+    return this.messagesService.sendMessage(threadId, user, {
+      content,
+      attachmentUrl,
+    });
+  }
+
+  @Patch('threads/:id/read')
+  async markAsRead(
+    @Param('id') threadId: string,
+    @GetUser('userId') userId: string,
+  ) {
+    return this.messagesService.markAsRead(threadId, userId);
   }
 }

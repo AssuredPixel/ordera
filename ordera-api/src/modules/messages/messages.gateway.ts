@@ -59,60 +59,7 @@ export class MessagesGateway implements OnGatewayConnection {
     @MessageBody() data: { threadId: string; content: string; attachmentUrl?: string },
   ) {
     const user = client.data.user;
-    const thread = await this.messagesService.validateMember(data.threadId, user.userId);
-
-    // 1. Save Message
-    const message = await this.messageModel.create({
-      organizationId: new Types.ObjectId(user.organizationId),
-      threadId: new Types.ObjectId(data.threadId),
-      senderId: new Types.ObjectId(user.userId),
-      senderName: user.firstName,
-      senderRole: user.role,
-      content: data.content,
-      attachmentUrl: data.attachmentUrl,
-      readBy: [new Types.ObjectId(user.userId)],
-    });
-
-    // 2. Update Thread LastMessage and Unread Counts
-    const preview = data.content.substring(0, 80);
-    
-    // Use $inc for atomic unread increments for everyone EXCEPT sender
-    const unreadUpdates: any = {};
-    thread.memberIds.forEach(id => {
-      const idStr = id.toString();
-      if (idStr !== user.userId) {
-        unreadUpdates[`unreadCounts.${idStr}`] = 1;
-      }
-    });
-
-    await this.threadModel.updateOne(
-      { _id: thread._id },
-      {
-        $set: {
-          lastMessage: {
-            content: preview,
-            senderName: user.firstName,
-            sentAt: new Date(),
-          },
-        },
-        $inc: unreadUpdates,
-      }
-    );
-
-    // 3. Emit to Room (Socket.io fallback)
-    this.server.to(data.threadId).emit('message:receive', {
-      threadId: data.threadId,
-      message,
-    });
-
-    // 4. Push to Pusher (Vercel/Production Real-time)
-    this.pusherService.trigger(
-      `thread-${data.threadId}`,
-      'message:receive',
-      { threadId: data.threadId, message }
-    );
-
-    return message;
+    return this.messagesService.sendMessage(data.threadId, user, data);
   }
 
   @SubscribeMessage('typing:start')

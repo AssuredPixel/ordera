@@ -18,7 +18,7 @@ import {
   Repeat
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { BranchStats, StockAlert, StaffPerformance, BillSummary } from '@/types/ordera';
+import { BranchStats, StockAlert, StaffPerformance, BillSummary, Order, OrderStatus } from '@/types/ordera';
 import { XCircle } from 'lucide-react';
 import { useRealtime } from '@/lib/realtime-hook';
 
@@ -29,6 +29,7 @@ export default function BranchDashboard() {
   // Real-time Updates: Refresh dashboard when orders/bills change
   useRealtime(`branch-${branchId}`, 'order:update', () => {
     queryClient.invalidateQueries({ queryKey: ['branch-stats', branchId] });
+    queryClient.invalidateQueries({ queryKey: ['branch-live-orders', branchId] });
   });
 
   useRealtime(`branch-${branchId}`, 'bill:paid', () => {
@@ -43,6 +44,16 @@ export default function BranchDashboard() {
       return data;
     },
     refetchInterval: 30000, // Refetch every 30s
+  });
+
+  // 1b. Fetch Live Orders
+  const { data: liveOrders = [], isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['branch-live-orders', branchId],
+    queryFn: async () => {
+      const data = await api.get<Order[]>(`/api/dashboard/branch/${branchId}/live-orders`);
+      return data;
+    },
+    refetchInterval: 15000, // Refetch live orders every 15s
   });
 
   // 2. Close Business Day Mutation
@@ -153,12 +164,33 @@ export default function BranchDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {/* Data would go here if we had a separate live-orders fetch */}
-                  <tr className="hover:bg-gray-50/50">
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-400 italic">
-                      Table view for active orders...
-                    </td>
-                  </tr>
+                  {isLoadingOrders ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-400 italic">
+                        Loading live orders...
+                      </td>
+                    </tr>
+                  ) : liveOrders.length > 0 ? (
+                    liveOrders.map((order: Order) => (
+                      <tr key={order._id} className="hover:bg-gray-50/50">
+                        <td className="px-6 py-4 font-mono text-xs text-gray-500">#{order._id.slice(-6).toUpperCase()}</td>
+                        <td className="px-6 py-4 font-bold text-muted">{order.tableNumber || 'Takeaway'}</td>
+                        <td className="px-6 py-4 text-gray-600">{order.waiterName}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase ${getOrderStatusColor(order.status)}`}>
+                            {order.status.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-500">{format(new Date(order.createdAt), 'hh:mm a')}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-400 italic">
+                        No active orders at the moment.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -283,4 +315,17 @@ function Section({ title, icon: Icon, children }: { title: string; icon: any; ch
       {children}
     </div>
   );
+}
+
+function getOrderStatusColor(status: OrderStatus) {
+  switch (status) {
+    case OrderStatus.PENDING: return 'bg-gray-100 text-gray-600';
+    case OrderStatus.SENT_TO_KITCHEN: return 'bg-blue-100 text-blue-600';
+    case OrderStatus.IN_PREPARATION: return 'bg-amber-100 text-amber-600';
+    case OrderStatus.READY_FOR_PICKUP: return 'bg-emerald-100 text-emerald-600';
+    case OrderStatus.SERVED: return 'bg-purple-100 text-purple-600';
+    case OrderStatus.PAID: return 'bg-green-100 text-green-600';
+    case OrderStatus.CANCELLED: return 'bg-red-100 text-red-600';
+    default: return 'bg-gray-100 text-gray-600';
+  }
 }

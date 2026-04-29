@@ -80,6 +80,7 @@ export class MenuService {
   async createMenuItem(organizationId: string, branchId: string, data: any): Promise<MenuItem> {
     const item = new this.menuItemModel({
       ...data,
+      categoryId: new Types.ObjectId(data.categoryId), // explicit cast prevents string vs ObjectId mismatch
       organizationId: new Types.ObjectId(organizationId),
       branchId: new Types.ObjectId(branchId),
     });
@@ -104,6 +105,7 @@ export class MenuService {
     shiftId?: string,
     businessDayId?: string,
   ): Promise<MenuItem> {
+    console.log(`[MenuService] updateStock started for item ${itemId} to status ${newStatus}`);
     const item = await this.menuItemModel.findById(itemId);
     if (!item) throw new NotFoundException('Menu item not found');
 
@@ -112,9 +114,11 @@ export class MenuService {
 
     const previousStatus = item.stockStatus;
     item.stockStatus = newStatus;
+    console.log(`[MenuService] Saving item ${item.name}...`);
     await item.save();
 
     // Record History
+    console.log(`[MenuService] Recording history...`);
     await this.stockHistoryModel.create({
       organizationId: item.organizationId,
       branchId: item.branchId,
@@ -132,23 +136,31 @@ export class MenuService {
 
     // Trigger Notifications
     if (newStatus === StockStatus.LOW || newStatus === StockStatus.FINISHED) {
-      const managers = await this.usersService.findManagersByBranch(item.branchId.toString());
-      const type = newStatus === StockStatus.LOW ? NotificationType.LOW_STOCK : NotificationType.FINISHED_STOCK;
-      const title = `${item.name} is running ${newStatus === StockStatus.LOW ? 'low' : 'out'}`;
-      const body = `Updated by ${user.firstName} ${user.lastName}. Stock status: ${newStatus}`;
+      console.log(`[MenuService] Triggering notifications for ${newStatus} stock...`);
+      try {
+        const managers = await this.usersService.findManagersByBranch(item.branchId.toString());
+        console.log(`[MenuService] Found ${managers.length} managers to notify`);
+        const type = newStatus === StockStatus.LOW ? NotificationType.LOW_STOCK : NotificationType.FINISHED_STOCK;
+        const title = `${item.name} is running ${newStatus === StockStatus.LOW ? 'low' : 'out'}`;
+        const body = `Updated by ${user.firstName} ${user.lastName}. Stock status: ${newStatus}`;
 
-      for (const manager of managers) {
-        await this.notificationsService.createNotification({
-          organizationId: item.organizationId,
-          branchId: item.branchId,
-          recipientUserId: manager._id as Types.ObjectId,
-          type,
-          title,
-          body,
-        });
+        for (const manager of managers) {
+          await this.notificationsService.createNotification({
+            organizationId: item.organizationId,
+            branchId: item.branchId,
+            recipientUserId: manager._id as Types.ObjectId,
+            type,
+            title,
+            body,
+          });
+        }
+        console.log(`[MenuService] Notifications sent`);
+      } catch (error) {
+        console.error(`[MenuService] Notification error (non-blocking):`, error);
       }
     }
 
+    console.log(`[MenuService] updateStock completed`);
     return item;
   }
 

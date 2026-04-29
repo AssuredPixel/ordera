@@ -29,13 +29,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [loadUser]);
 
 
-  if (!mounted) return null;
+  // The `mounted` check was causing a severe hydration mismatch where the server rendered an empty body.
+  // We can safely render the Providers on the server.
 
   return (
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
         {children}
-        <Toaster position="top-right" expand={false} richColors />
+        {mounted && <Toaster position="top-right" expand={false} richColors />}
       </GoogleOAuthProvider>
     </QueryClientProvider>
   );
