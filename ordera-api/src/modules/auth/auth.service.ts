@@ -80,7 +80,7 @@ export class AuthService {
     
     return { 
       organization: org, 
-      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }, 
+      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null }, 
       accessToken
     };
   }
@@ -123,7 +123,7 @@ export class AuthService {
 
     return {
       accessToken,
-      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
+      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null },
       organization: org
     };
   }
@@ -148,7 +148,7 @@ export class AuthService {
 
     return { 
       accessToken, 
-      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
+      user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null },
       organization: populatedOrg 
     };
   }
@@ -183,7 +183,11 @@ export class AuthService {
       const sessionId = randomUUID();
       await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: 'Google OAuth' });
 
-      return { accessToken, user, organization: org };
+      return { 
+        accessToken, 
+        user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null }, 
+        organization: org 
+      };
     } catch (e) {
       throw new UnauthorizedException('Google authentication failed');
     }

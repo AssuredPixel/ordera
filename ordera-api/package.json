@@ -15,8 +15,9 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "seed:phase1": "ts-node src/seed-phase1.ts",
-    "seed:phase2": "ts-node src/seed-phase2.ts"
+    "seed:phase1": "npx ts-node src/seed-phase1.ts",
+    "seed:phase2": "npx ts-node src/seed-phase2.ts",
+    "seed:phase3": "npx ts-node src/seed-phase3.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -42,6 +43,7 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "resend": "^6.12.2",
+    "pusher": "^5.2.0",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
     "stripe": "^22.0.2",
@@ -59,6 +61,7 @@
     "@types/uuid": "^10.0.0",
     "@types/whatwg-url": "^13.0.0",
     "ajv": "^8.18.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "uri-js": "^4.4.1"
   }

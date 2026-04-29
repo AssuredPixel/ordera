@@ -38,6 +38,8 @@ export default function LoginPage() {
       router.push('/admin/dashboard');
     } else if (role === 'OWNER') {
       router.push('/owner/dashboard');
+    } else if (role === 'BRANCH_MANAGER' && user.branchId) {
+      router.push(`/branches/${user.branchId}/dashboard`);
     } else {
       // Default fallback to home instead of /dashboard (404)
       router.push('/');

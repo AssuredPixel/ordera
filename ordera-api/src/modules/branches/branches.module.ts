@@ -6,13 +6,15 @@ import { Branch, BranchSchema } from './branch.schema';
 import { PlatformModule } from '../platform/platform.module';
 import { UsersModule } from '../users/users.module';
 import { InvitationsModule } from '../invitations/invitations.module';
+import { MessagesModule } from '../messages/messages.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Branch.name, schema: BranchSchema }]),
     PlatformModule,
     UsersModule,
-    InvitationsModule
+    InvitationsModule,
+    MessagesModule,
   ],
   controllers: [BranchesController],
   providers: [BranchesService],

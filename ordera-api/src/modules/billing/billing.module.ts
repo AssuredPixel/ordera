@@ -7,6 +7,7 @@ import { ReconciliationController } from './reconciliation.controller';
 import { Bill, BillSchema } from './schemas/bill.schema';
 import { Reconciliation, ReconciliationSchema } from './schemas/reconciliation.schema';
 import { Order, OrderSchema } from '../ordering/schemas/order.schema';
+import { MessagesModule } from '../messages/messages.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { Order, OrderSchema } from '../ordering/schemas/order.schema';
       { name: Reconciliation.name, schema: ReconciliationSchema },
       { name: Order.name, schema: OrderSchema },
     ]),
+    MessagesModule,
   ],
   controllers: [BillsController, ReconciliationController],
   providers: [BillsService, ReconciliationService],

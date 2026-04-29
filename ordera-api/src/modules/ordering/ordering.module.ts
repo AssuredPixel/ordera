@@ -8,6 +8,7 @@ import { MenuItem, MenuItemSchema } from '../menu/schemas/menu-item.schema';
 import { BusinessDay, BusinessDaySchema } from '../scheduling/business-day.schema';
 import { Shift, ShiftSchema } from '../scheduling/shift.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { MessagesModule } from '../messages/messages.module';
 import { Branch, BranchSchema } from '../branches/branch.schema';
 
 @Module({
@@ -20,6 +21,7 @@ import { Branch, BranchSchema } from '../branches/branch.schema';
       { name: Branch.name, schema: BranchSchema },
     ]),
     NotificationsModule,
+    MessagesModule,
   ],
   controllers: [OrderingController],
   providers: [OrderingService, OrderingGateway],

@@ -17,6 +17,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { OrderingGateway } from './ordering.gateway';
 import { Branch } from '../branches/branch.schema';
+import { PusherService } from '../messages/pusher.service';
 
 @Injectable()
 export class OrderingService {
@@ -28,6 +29,7 @@ export class OrderingService {
     @InjectModel(Branch.name) private readonly branchModel: Model<Branch>,
     private readonly notificationsService: NotificationsService,
     private readonly gateway: OrderingGateway,
+    private readonly pusherService: PusherService,
   ) { }
 
   async createOrder(user: any, data: any) {
@@ -53,6 +55,13 @@ export class OrderingService {
       subtotal: { amount: 0, currency: 'NGN' },
       tax: { amount: 0, currency: 'NGN' },
       total: { amount: 0, currency: 'NGN' },
+    });
+
+    // 4. Trigger Real-time update for Dashboard/Staff
+    this.pusherService.trigger(`branch-${user.branchId}`, 'order:update', {
+      orderId: order._id,
+      waiterName: order.waiterName,
+      tableNumber: order.tableNumber,
     });
 
     return order;
@@ -163,6 +172,12 @@ export class OrderingService {
     } else if (newStatus === OrderStatus.SERVED) {
       order.servedAt = new Date();
     }
+
+    // Trigger Real-time update for Dashboard/Staff
+    this.pusherService.trigger(`branch-${branchId}`, 'order:update', {
+      orderId: order._id,
+      status: newStatus,
+    });
 
     return order.save();
   }

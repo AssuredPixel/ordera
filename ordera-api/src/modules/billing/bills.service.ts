@@ -11,12 +11,14 @@ import { BillStatus } from '../../common/enums/bill-status.enum';
 import { Order } from '../ordering/schemas/order.schema';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 import { PaymentMethod } from '../../common/enums/payment-method.enum';
+import { PusherService } from '../messages/pusher.service';
 
 @Injectable()
 export class BillsService {
   constructor(
     @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
     @InjectModel(Order.name) private readonly orderModel: Model<Order>,
+    private readonly pusherService: PusherService,
   ) {}
 
   async createBill(orderId: string, branchId: string) {
@@ -94,6 +96,13 @@ export class BillsService {
 
     bill.status = BillStatus.PAID;
     bill.paidAt = new Date();
+
+    // Trigger Real-time update for Dashboard/Staff
+    this.pusherService.trigger(`branch-${branchId}`, 'bill:paid', {
+      billId: bill._id,
+      amount: bill.total.amount,
+      waiterName: bill.waiterName,
+    });
 
     return bill.save();
   }

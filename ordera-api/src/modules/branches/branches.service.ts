@@ -6,6 +6,7 @@ import { SubscriptionService } from '../platform/subscription.service';
 import { UsersService } from '../users/users.service';
 import { InvitationsService } from '../invitations/invitations.service';
 import { OperatingMode } from '../../common/enums/operating-mode.enum';
+import { MessagesService } from '../messages/messages.service';
 
 @Injectable()
 export class BranchesService {
@@ -14,6 +15,7 @@ export class BranchesService {
     private subscriptionService: SubscriptionService,
     private usersService: UsersService,
     private invitationsService: InvitationsService,
+    private messagesService: MessagesService,
   ) {}
 
   async create(organizationId: string, data: Partial<Branch>) {
@@ -45,7 +47,12 @@ export class BranchesService {
       slug,
       organizationId: new Types.ObjectId(organizationId),
     });
-    return branch.save();
+    const savedBranch = await branch.save();
+
+    // Auto-create system threads
+    await this.messagesService.createSystemThreads(savedBranch._id.toString(), organizationId);
+
+    return savedBranch;
   }
 
   async getBranchStaff(branchId: string, organizationId: string) {
