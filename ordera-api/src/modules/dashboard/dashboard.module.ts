@@ -7,6 +7,7 @@ import { Bill, BillSchema } from '../billing/schemas/bill.schema';
 import { User, UserSchema } from '../users/user.schema';
 import { MenuItem, MenuItemSchema } from '../menu/schemas/menu-item.schema';
 import { BusinessDay, BusinessDaySchema } from '../scheduling/business-day.schema';
+import { Branch, BranchSchema } from '../branches/branch.schema';
 
 import { AuthModule } from '../auth/auth.module';
 
@@ -19,6 +20,7 @@ import { AuthModule } from '../auth/auth.module';
       { name: User.name, schema: UserSchema },
       { name: MenuItem.name, schema: MenuItemSchema },
       { name: BusinessDay.name, schema: BusinessDaySchema },
+      { name: Branch.name, schema: BranchSchema },
     ]),
   ],
   controllers: [DashboardController],

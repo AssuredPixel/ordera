@@ -73,33 +73,38 @@ export default function BranchDashboard() {
     </div>
   </div>;
 
-  const { kpis, businessDay, stockAlerts, performance, recentBills } = data || {};
-  const isDayOpen = businessDay?.status === 'open';
+    const { kpis, businessDay, stockAlerts, performance, recentBills, isOperating } = data || {};
+    const isDayOpen = businessDay?.status === 'open';
 
-  return (
-    <div className="space-y-8 pb-12">
-      {/* ── TOP BAR ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-[#1A1A2E]">
-            {businessDay?.branchName || 'Daily Operations'}
-          </h1>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-bold uppercase tracking-wider">
-              {businessDay?.operatingMode || 'Day-Based'}
-            </span>
-            {isDayOpen ? (
-              <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                Active • Since {businessDay?.actualOpen ? format(new Date(businessDay.actualOpen), 'hh:mm a') : '--:--'}
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-red-500 text-sm font-medium">
-                <XCircle size={14} /> Closed
-              </span>
-            )}
-          </div>
-        </div>
+    return (
+        <div className="space-y-8 pb-12">
+            {/* ── TOP BAR ── */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="font-display text-4xl text-[#1A1A2E]">
+                        {businessDay?.branchName || 'Daily Operations'}
+                    </h1>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-bold uppercase tracking-wider">
+                            {businessDay?.operatingMode || 'Day-Based'}
+                        </span>
+                        {isDayOpen ? (
+                            <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                Active • Since {businessDay?.actualOpen ? format(new Date(businessDay.actualOpen), 'hh:mm a') : '--:--'}
+                            </span>
+                        ) : isOperating ? (
+                            <span className="flex items-center gap-1.5 text-amber-600 text-sm font-medium">
+                                <Clock size={14} className="animate-spin-slow" />
+                                Operating • Scheduled {businessDay?.scheduledOpen} - {businessDay?.scheduledClose}
+                            </span>
+                        ) : (
+                            <span className="flex items-center gap-1.5 text-red-500 text-sm font-medium">
+                                <XCircle size={14} /> Closed
+                            </span>
+                        )}
+                    </div>
+                </div>
 
         {isDayOpen && (
           <button
@@ -120,7 +125,7 @@ export default function BranchDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPIItem
           title="Revenue Today"
-          value={`\u20A6${(kpis?.revenue / 100).toLocaleString()}`}
+          value={`₦${(kpis?.revenue / 100).toLocaleString()}`}
           icon={TrendingUp}
           color="#C97B2A"
         />
@@ -213,7 +218,7 @@ export default function BranchDashboard() {
                       <td className="px-4 py-4 font-medium text-muted">{p.waiterName}</td>
                       <td className="px-4 py-4 text-center">{p.ordersCount}</td>
                       <td className="px-4 py-4 text-right font-bold text-[#C97B2A]">
-                        \u20A6{(p.revenue / 100).toLocaleString()}
+                        ₦{(p.revenue / 100).toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -270,7 +275,7 @@ export default function BranchDashboard() {
                     </div>
                   </div>
                   <p className="text-sm font-bold text-[#1A1A2E]">
-                    \u20A6{(bill.total.amount / 100).toLocaleString()}
+                    ₦{(bill.total.amount / 100).toLocaleString()}
                   </p>
                 </div>
               ))}

@@ -93,6 +93,12 @@ export class Branch extends Document {
 
   @Prop({ type: BranchSettings, default: () => ({}) })
   settings: BranchSettings;
+
+  @Prop({ default: '08:00' })
+  defaultOpenTime: string;
+
+  @Prop({ default: '22:00' })
+  defaultCloseTime: string;
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);

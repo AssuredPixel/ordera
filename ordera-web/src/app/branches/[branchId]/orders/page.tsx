@@ -142,7 +142,7 @@ export default function OrdersManagement() {
               <div className="pt-4 border-t border-gray-50 flex items-center justify-between group-hover:border-[#C97B2A]/10 transition-colors mt-auto">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total</span>
                 <span className="font-display text-xl text-[#C97B2A]">
-                  \u20A6{((order.total?.amount || 0) / 100).toLocaleString()}
+                  ₦{((order.total?.amount || 0) / 100).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function OrdersManagement() {
                       )}
                     </div>
                     <p className="font-medium text-muted">
-                      \u20A6{(item.lineTotal.amount / 100).toLocaleString()}
+                      ₦{(item.lineTotal.amount / 100).toLocaleString()}
                     </p>
                   </div>
                 ))}
@@ -215,15 +215,15 @@ export default function OrdersManagement() {
               <div className="space-y-2 mb-6 text-sm">
                 <div className="flex justify-between text-white/60">
                   <span>Subtotal</span>
-                  <span>\u20A6{((selectedOrder.subtotal?.amount || 0) / 100).toLocaleString()}</span>
+                  <span>₦{((selectedOrder.subtotal?.amount || 0) / 100).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-white/60">
                   <span>VAT (7.5%)</span>
-                  <span>\u20A6{((selectedOrder.tax?.amount || 0) / 100).toLocaleString()}</span>
+                  <span>₦{((selectedOrder.tax?.amount || 0) / 100).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between font-display text-2xl text-white pt-2 border-t border-white/10 mt-2">
                   <span>Total</span>
-                  <span className="text-[#C97B2A]">\u20A6{((selectedOrder.total?.amount || 0) / 100).toLocaleString()}</span>
+                  <span className="text-[#C97B2A]">₦{((selectedOrder.total?.amount || 0) / 100).toLocaleString()}</span>
                 </div>
               </div>
 

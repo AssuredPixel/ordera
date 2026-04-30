@@ -361,6 +361,26 @@ export default function BranchDetailPage() {
                             <option value="SHIFT_BASED">Shift-Based Sessions</option>
                          </select>
                       </div>
+                      <div className="grid grid-cols-2 gap-4">
+                         <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1">Default Open (HH:MM)</label>
+                            <input 
+                               value={formData.defaultOpenTime}
+                               onChange={(e) => setFormData({...formData, defaultOpenTime: e.target.value})}
+                               placeholder="08:00"
+                               className="w-full px-4 py-2.5 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand text-sm"
+                            />
+                         </div>
+                         <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1">Default Close (HH:MM)</label>
+                            <input 
+                               value={formData.defaultCloseTime}
+                               onChange={(e) => setFormData({...formData, defaultCloseTime: e.target.value})}
+                               placeholder="22:00"
+                               className="w-full px-4 py-2.5 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand text-sm"
+                            />
+                         </div>
+                      </div>
                       <div className="space-y-1.5">
                          <label className="text-xs font-bold text-gray-500 uppercase ml-1">Reconciliation Frequency</label>
                          <select 

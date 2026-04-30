@@ -17,6 +17,7 @@ import { OrderingModule } from './modules/ordering/ordering.module';
 import { IntelligenceModule } from './modules/intelligence/intelligence.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
 
 @Controller('ping')
@@ -56,6 +57,7 @@ class PingController {
     IntelligenceModule,
     MessagesModule,
     DashboardModule,
+    ReportsModule,
   ],
   controllers: [PingController],
   providers: [],

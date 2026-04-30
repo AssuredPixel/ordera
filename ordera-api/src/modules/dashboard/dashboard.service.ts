@@ -9,6 +9,7 @@ import { BusinessDay } from '../scheduling/business-day.schema';
 import { BillStatus } from '../../common/enums/bill-status.enum';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 import { StockStatus } from '../../common/enums/stock-status.enum';
+import { Branch } from '../branches/branch.schema';
 
 @Injectable()
 export class DashboardService {
@@ -18,7 +19,8 @@ export class DashboardService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(MenuItem.name) private readonly itemModel: Model<MenuItem>,
     @InjectModel(BusinessDay.name) private readonly businessDayModel: Model<BusinessDay>,
-  ) {}
+    @InjectModel(Branch.name) private readonly branchModel: Model<Branch>,
+  ) { }
 
   async getBranchStats(branchId: string) {
     const today = new Date();
@@ -34,12 +36,12 @@ export class DashboardService {
 
     // 2. Revenue (Today's PAID bills)
     const revenueStats = await this.billModel.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           branchId: new Types.ObjectId(branchId),
           status: BillStatus.PAID,
           createdAt: { $gte: today }
-        } 
+        }
       },
       {
         $group: {
@@ -101,6 +103,16 @@ export class DashboardService {
       .sort({ createdAt: -1 })
       .limit(10);
 
+    // 9. Check if currently in Operating Hours
+    const branch = await this.branchModel.findById(branchId);
+    const now = new Date();
+    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+    const openTime = businessDay?.scheduledOpen || branch?.defaultOpenTime || '08:00';
+    const closeTime = businessDay?.scheduledClose || branch?.defaultCloseTime || '22:00';
+
+    const isOperating = currentTime >= openTime && currentTime <= closeTime;
+
     return {
       kpis: {
         revenue,
@@ -108,10 +120,11 @@ export class DashboardService {
         staffOnShift,
         openOrders
       },
-      businessDay: businessDay || { status: 'none' },
+      businessDay: businessDay || { status: 'none', scheduledOpen: openTime, scheduledClose: closeTime },
       stockAlerts,
       performance,
-      recentBills
+      recentBills,
+      isOperating
     };
   }
 

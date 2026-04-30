@@ -123,7 +123,7 @@ export default function StaffManagement() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <p className="text-lg font-display text-[#C97B2A]">
-                          \u20A6{(p.revenue / 100).toLocaleString()}
+                          ₦{(p.revenue / 100).toLocaleString()}
                         </p>
                       </td>
                       <td className="px-6 py-4 text-right">
