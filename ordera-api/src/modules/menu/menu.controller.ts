@@ -3,10 +3,13 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
   Req,
+  Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -25,8 +28,12 @@ export class MenuController {
   // --- CATEGORIES ---
 
   @Get('categories')
-  async getCategories(@GetUser() user: JwtPayload) {
-    return this.menuService.getCategories(user.organizationId, user.branchId);
+  async getCategories(
+    @GetUser() user: JwtPayload,
+    @Query('branchId') branchId?: string
+  ) {
+    const targetBranchId = branchId || user.branchId;
+    return this.menuService.getCategories(user.organizationId, targetBranchId);
   }
 
   @Post('categories')
@@ -55,14 +62,23 @@ export class MenuController {
   }
 
   @Post('items')
-  @Roles(Role.BRANCH_MANAGER, Role.OWNER)
-  async createMenuItem(@GetUser() user: JwtPayload, @Body() data: any) {
-    return this.menuService.createMenuItem(user.organizationId, user.branchId, data);
+  @Roles(Role.BRANCH_MANAGER, Role.KITCHEN_STAFF, Role.OWNER)
+  async createMenuItem(
+    @GetUser() user: JwtPayload,
+    @Body() data: any,
+    @Query('branchId') branchId?: string
+  ) {
+    const targetBranchId = branchId || user.branchId;
+    if (!targetBranchId) throw new UnauthorizedException('Branch ID is required');
+    return this.menuService.createMenuItem(user.organizationId, targetBranchId, data);
   }
 
   @Patch('items/:id')
-  @Roles(Role.BRANCH_MANAGER, Role.OWNER)
-  async updateMenuItem(@Param('id') id: string, @Body() data: any) {
+  @Roles(Role.BRANCH_MANAGER, Role.KITCHEN_STAFF, Role.OWNER)
+  async updateMenuItem(
+    @Param('id') id: string,
+    @Body() data: any,
+  ) {
     return this.menuService.updateMenuItem(id, data);
   }
 
@@ -99,7 +115,11 @@ export class MenuController {
 
   @Get('stock-overview')
   @Roles(Role.BRANCH_MANAGER, Role.KITCHEN_STAFF, Role.OWNER)
-  async getStockOverview(@GetUser() user: JwtPayload) {
-    return this.menuService.getStockOverview(user.organizationId, user.branchId);
+  async getStockOverview(
+    @GetUser() user: JwtPayload,
+    @Query('branchId') branchId?: string
+  ) {
+    const targetBranchId = branchId || user.branchId;
+    return this.menuService.getStockOverview(user.organizationId, targetBranchId);
   }
 }

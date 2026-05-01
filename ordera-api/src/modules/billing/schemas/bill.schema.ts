@@ -110,6 +110,8 @@ export const BillSchema = SchemaFactory.createForClass(Bill);
 BillSchema.index({ organizationId: 1, branchId: 1, status: 1 });
 BillSchema.index({ organizationId: 1, branchId: 1, waiterId: 1 });
 BillSchema.index({ organizationId: 1, branchId: 1, createdAt: -1 });
+BillSchema.index({ branchId: 1, waiterId: 1, createdAt: -1 });
+BillSchema.index({ branchId: 1, status: 1 });
 BillSchema.index({ shiftId: 1 });
 BillSchema.index({ businessDayId: 1 });
 BillSchema.index({ reconciliationId: 1 });

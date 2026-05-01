@@ -5,30 +5,33 @@ import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Category, MenuItem, StockStatus } from '@/types/ordera';
-import { 
-  UtensilsCrossed, 
-  Plus, 
-  MoreVertical, 
-  Search, 
+import {
+  UtensilsCrossed,
+  Plus,
+  MoreVertical,
+  Search,
   FolderPlus,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   Loader2,
-  X
+  X,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function MenuAndStock() {
   const { branchId } = useParams();
   const queryClient = useQueryClient();
-  
+
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   // --- DATA FETCHING ---
-  
+
   const { data: categories = [], isLoading: isLoadingCats } = useQuery({
     queryKey: ['branch-categories', branchId],
     queryFn: async () => {
@@ -67,37 +70,52 @@ export default function MenuAndStock() {
   });
 
   return (
-    <div className="flex h-[calc(100vh-100px)] gap-6">
-      
+    <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-100px)] gap-6">
+
       {/* ── LEFT PANE: Categories ── */}
-      <div className="w-72 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden shrink-0">
+      <div className={`
+        w-full lg:w-72 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden shrink-0 transition-all duration-300
+        ${isCollapsed ? 'h-[88px] lg:h-full' : 'h-[300px] lg:h-full'}
+      `}>
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="font-display text-2xl text-[#1A1A2E]">Menu</h2>
-            <button 
+            <div className="flex items-center gap-2">
+              <h2 className="font-display text-2xl text-[#1A1A2E]">Menu</h2>
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="lg:hidden p-1.5 bg-gray-50 text-gray-400 hover:text-[#C97B2A] rounded-lg transition-colors"
+              >
+                {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+              </button>
+            </div>
+            <button
               onClick={() => setIsCategoryModalOpen(true)}
               className="p-2 bg-gray-50 text-gray-500 hover:bg-[#C97B2A] hover:text-white rounded-xl transition-colors"
             >
               <FolderPlus size={18} />
             </button>
           </div>
-          <p className="text-xs text-gray-400">Manage your branch-specific categories.</p>
+          {!isCollapsed && <p className="text-xs text-gray-400 lg:block">Manage your branch categories.</p>}
+          <p className="hidden lg:block text-xs text-gray-400">Manage your categories.</p>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {isLoadingCats ? (
             <div className="space-y-2 p-3 animate-pulse">
-              {[1,2,3].map(i => <div key={i} className="h-10 bg-gray-100 rounded-xl" />)}
+              {[1, 2, 3].map(i => <div key={i} className="h-10 bg-gray-100 rounded-xl" />)}
             </div>
           ) : categories.length > 0 ? (
             categories.map((cat: Category) => (
               <button
                 key={cat._id}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setIsCollapsed(true); // Auto-collapse on selection for better mobile flow
+                }}
                 className={`
                   w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all flex justify-between items-center
-                  ${selectedCategory?._id === cat._id 
-                    ? 'bg-[#1A1A2E] text-white shadow-md' 
+                  ${selectedCategory?._id === cat._id
+                    ? 'bg-[#1A1A2E] text-white shadow-md'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-muted'}
                 `}
               >
@@ -113,15 +131,15 @@ export default function MenuAndStock() {
       </div>
 
       {/* ── RIGHT PANE: Items Grid ── */}
-      <div className="flex-1 flex flex-col bg-transparent">
+      <div className={`flex-1 flex flex-col bg-transparent transition-all duration-300 ${isCollapsed ? 'mt-4' : 'mt-8'} lg:mt-0`}>
         {selectedCategory ? (
           <>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 className="font-display text-3xl text-[#1A1A2E]">{selectedCategory.name}</h2>
                 <p className="text-sm text-gray-500 mt-1">Manage items and stock levels</p>
               </div>
-              <button 
+              <button
                 onClick={() => setIsItemModalOpen(true)}
                 className="flex items-center gap-2 px-6 py-2.5 bg-[#C97B2A] text-white rounded-xl font-bold shadow-sm hover:bg-[#B86A19] transition-all"
               >
@@ -132,7 +150,7 @@ export default function MenuAndStock() {
             <div className="flex-1 overflow-y-auto pb-12">
               {isLoadingItems ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 animate-pulse">
-                  {[1,2,3,4].map(i => <div key={i} className="h-32 bg-white rounded-3xl" />)}
+                  {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-white rounded-3xl" />)}
                 </div>
               ) : items.length > 0 ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -151,24 +169,24 @@ export default function MenuAndStock() {
                       <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Stock Level</span>
                         <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl">
-                          <StockButton 
-                            label="Avail" 
-                            status={StockStatus.AVAILABLE} 
-                            current={item.stockStatus} 
+                          <StockButton
+                            label="Avail"
+                            status={StockStatus.AVAILABLE}
+                            current={item.stockStatus}
                             onClick={() => stockMutation.mutate({ id: item._id, status: StockStatus.AVAILABLE })}
                             loading={stockMutation.isPending && stockMutation.variables?.id === item._id}
                           />
-                          <StockButton 
-                            label="Low" 
-                            status={StockStatus.LOW} 
-                            current={item.stockStatus} 
+                          <StockButton
+                            label="Low"
+                            status={StockStatus.LOW}
+                            current={item.stockStatus}
                             onClick={() => stockMutation.mutate({ id: item._id, status: StockStatus.LOW })}
                             loading={stockMutation.isPending && stockMutation.variables?.id === item._id}
                           />
-                          <StockButton 
-                            label="Finished" 
-                            status={StockStatus.FINISHED} 
-                            current={item.stockStatus} 
+                          <StockButton
+                            label="Finished"
+                            status={StockStatus.FINISHED}
+                            current={item.stockStatus}
                             onClick={() => stockMutation.mutate({ id: item._id, status: StockStatus.FINISHED })}
                             loading={stockMutation.isPending && stockMutation.variables?.id === item._id}
                           />
@@ -200,18 +218,18 @@ export default function MenuAndStock() {
       </div>
 
       {/* ── MODALS ── */}
-      <CreateCategoryModal 
-        isOpen={isCategoryModalOpen} 
-        onClose={() => setIsCategoryModalOpen(false)} 
+      <CreateCategoryModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['branch-categories', branchId] });
           setIsCategoryModalOpen(false);
         }}
       />
 
-      <CreateItemModal 
-        isOpen={isItemModalOpen} 
-        onClose={() => setIsItemModalOpen(false)} 
+      <CreateItemModal
+        isOpen={isItemModalOpen}
+        onClose={() => setIsItemModalOpen(false)}
         categoryId={selectedCategory?._id || ''}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['branch-items'] });
@@ -228,7 +246,7 @@ function StockButton({ label, status, current, onClick, loading }: any) {
   const isActive = status === current;
   let activeClass = 'bg-gray-200 text-gray-500';
   let Icon = null;
-  
+
   if (isActive) {
     if (status === StockStatus.AVAILABLE) {
       activeClass = 'bg-green-500 text-white shadow-sm';
@@ -289,14 +307,14 @@ function CreateCategoryModal({ isOpen, onClose, onSuccess }: any) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Category Name</label>
-            <input 
+            <input
               required autoFocus
               placeholder="e.g. Grills & Protein"
               value={name} onChange={e => setName(e.target.value)}
               className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-[#C97B2A] text-sm"
             />
           </div>
-          <button 
+          <button
             type="submit" disabled={isLoading}
             className="w-full py-3 bg-[#1A1A2E] text-white rounded-2xl font-bold hover:bg-[#2A2A4E] transition-all disabled:opacity-50"
           >
@@ -322,8 +340,8 @@ function CreateItemModal({ isOpen, onClose, categoryId, onSuccess }: any) {
     setIsLoading(true);
     try {
       const amount = Math.round(parseFloat(price) * 100);
-      await api.post('/api/menu/items', { 
-        name, 
+      await api.post('/api/menu/items', {
+        name,
         categoryId,
         price: { amount, currency: 'NGN' },
         stockStatus: StockStatus.AVAILABLE,
@@ -348,7 +366,7 @@ function CreateItemModal({ isOpen, onClose, categoryId, onSuccess }: any) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Item Name</label>
-            <input 
+            <input
               required autoFocus
               placeholder="e.g. Jollof Rice"
               value={name} onChange={e => setName(e.target.value)}
@@ -357,14 +375,14 @@ function CreateItemModal({ isOpen, onClose, categoryId, onSuccess }: any) {
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Price (₦)</label>
-            <input 
+            <input
               required type="number" min="0" step="0.01"
               placeholder="e.g. 2500"
               value={price} onChange={e => setPrice(e.target.value)}
               className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-[#C97B2A] text-sm"
             />
           </div>
-          <button 
+          <button
             type="submit" disabled={isLoading}
             className="w-full py-3 bg-[#C97B2A] text-white rounded-2xl font-bold shadow-md hover:bg-[#B86A19] transition-all disabled:opacity-50"
           >

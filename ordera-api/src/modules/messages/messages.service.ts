@@ -69,12 +69,42 @@ export class MessagesService {
     }
   }
 
-  async findUserThreads(userId: string) {
+  async findUserThreads(userId: string, user?: any) {
+    // If user info is provided, ensure they are in the correct system threads
+    if (user && user.branchId) {
+      await this.syncSystemThreads(user.userId, user.branchId, user.role);
+    }
+
     return this.threadModel
       .find({ memberIds: new Types.ObjectId(userId) })
       .populate('memberIds', 'firstName lastName avatar role') 
       .sort({ 'lastMessage.sentAt': -1 })
       .exec();
+  }
+
+  private async syncSystemThreads(userId: string, branchId: string, role: string) {
+    const systemThreads = await this.threadModel.find({
+      branchId: new Types.ObjectId(branchId),
+      isSystemThread: true,
+    });
+
+    for (const thread of systemThreads) {
+      const isMember = thread.memberIds.some(id => id.toString() === userId);
+      if (isMember) continue;
+
+      // Logic for who joins which thread
+      let shouldJoin = false;
+      if (thread.name === 'Front of House') shouldJoin = true; // Everyone in FOH?
+      if (thread.name === 'Kitchen' && (role === Role.WAITER || role === Role.KITCHEN_STAFF || role === Role.BRANCH_MANAGER)) shouldJoin = true;
+      if (thread.name === 'Management' && (role === Role.BRANCH_MANAGER || role === Role.OWNER)) shouldJoin = true;
+
+      if (shouldJoin) {
+        await this.threadModel.updateOne(
+          { _id: thread._id },
+          { $addToSet: { memberIds: new Types.ObjectId(userId) } }
+        );
+      }
+    }
   }
 
   async getThreadHistory(threadId: string, page: number = 1, limit: number = 50) {
@@ -135,12 +165,21 @@ export class MessagesService {
     const thread = await this.validateMember(threadId, user.userId);
 
     // 1. Save Message
+    let senderName = user.firstName;
+    let senderRole = user.role;
+
+    if (!senderName) {
+      const dbUser = await this.userModel.findById(user.userId);
+      senderName = dbUser?.firstName || 'Staff';
+      senderRole = dbUser?.role || user.role;
+    }
+
     const message = await this.messageModel.create({
       organizationId: new Types.ObjectId(user.organizationId),
       threadId: new Types.ObjectId(threadId),
       senderId: new Types.ObjectId(user.userId),
-      senderName: user.firstName,
-      senderRole: user.role,
+      senderName,
+      senderRole,
       content: data.content,
       attachmentUrl: data.attachmentUrl,
       readBy: [new Types.ObjectId(user.userId)],
@@ -162,7 +201,7 @@ export class MessagesService {
         $set: {
           lastMessage: {
             content: preview,
-            senderName: user.firstName,
+            senderName,
             sentAt: new Date(),
           },
         },

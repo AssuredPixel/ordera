@@ -12,9 +12,22 @@ export enum OrderStatus {
   SENT_TO_KITCHEN = 'SENT_TO_KITCHEN',
   IN_PREPARATION = 'IN_PREPARATION',
   READY_FOR_PICKUP = 'READY_FOR_PICKUP',
+  PICKED_UP = 'PICKED_UP',
   SERVED = 'SERVED',
+  CANCELLED = 'CANCELLED',
+  BILLED = 'BILLED',
+}
+
+export enum BillStatus {
+  ACTIVE = 'ACTIVE',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentMethod {
+  CASH = 'CASH',
+  CARD = 'CARD',
+  TRANSFER = 'TRANSFER',
 }
 
 export interface Money {
@@ -117,6 +130,10 @@ export interface Order {
   tax: Money;
   total: Money;
   createdAt: string;
+  sentToKitchenAt?: string;
+  readyAt?: string;
+  pickedUpAt?: string;
+  servedAt?: string;
 }
 
 export enum StockStatus {
@@ -139,4 +156,24 @@ export interface MenuItem {
   stockStatus: StockStatus;
   categoryId: string;
   isActive: boolean;
+}
+
+export interface Bill {
+  _id: string;
+  orderId: string;
+  tableNumber?: string;
+  waiterName: string;
+  items: OrderItem[];
+  subtotal: Money;
+  tax: Money;
+  total: Money;
+  status: BillStatus;
+  payment?: {
+    method: PaymentMethod;
+    amountPaid: Money;
+    change: Money;
+    reference?: string;
+    processedAt: string;
+  };
+  createdAt: string;
 }

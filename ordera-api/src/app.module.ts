@@ -18,6 +18,7 @@ import { IntelligenceModule } from './modules/intelligence/intelligence.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { WaiterModule } from './modules/waiter/waiter.module';
 import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
 
 @Controller('ping')
@@ -58,6 +59,7 @@ class PingController {
     MessagesModule,
     DashboardModule,
     ReportsModule,
+    WaiterModule,
   ],
   controllers: [PingController],
   providers: [],

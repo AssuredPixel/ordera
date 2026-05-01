@@ -10,6 +10,7 @@ import { Shift, ShiftSchema } from '../scheduling/shift.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { MessagesModule } from '../messages/messages.module';
 import { Branch, BranchSchema } from '../branches/branch.schema';
+import { BillingModule } from '../billing/billing.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Branch, BranchSchema } from '../branches/branch.schema';
     ]),
     NotificationsModule,
     MessagesModule,
+    BillingModule,
   ],
   controllers: [OrderingController],
   providers: [OrderingService, OrderingGateway],

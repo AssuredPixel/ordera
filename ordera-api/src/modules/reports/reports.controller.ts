@@ -22,6 +22,7 @@ export class ReportsController {
 
     if (startDate) {
       start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
     } else {
       start = new Date();
       start.setDate(start.getDate() - 7);
@@ -30,6 +31,7 @@ export class ReportsController {
 
     if (endDate) {
       end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
     } else {
       end = new Date();
       end.setHours(23, 59, 59, 999);
@@ -50,6 +52,7 @@ export class ReportsController {
 
     if (startDate) {
       start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
     } else {
       start = new Date();
       start.setDate(start.getDate() - 30);
@@ -58,6 +61,7 @@ export class ReportsController {
 
     if (endDate) {
       end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
     } else {
       end = new Date();
       end.setHours(23, 59, 59, 999);

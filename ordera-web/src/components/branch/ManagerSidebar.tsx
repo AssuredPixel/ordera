@@ -102,12 +102,12 @@ export function ManagerSidebar({ isOpen, onClose, branchName }: ManagerSidebarPr
             style={{ background: '#C97B2A22' }}
           >
             <span style={{ color: '#C97B2A' }}>
-              {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
+              {user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'M'}
             </span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-white text-xs font-medium truncate leading-tight">
-              {user?.firstName} {user?.lastName}
+              {user?.name || 'Manager'}
             </p>
             <p className="text-white/35 text-[10px] truncate">{user?.email}</p>
           </div>

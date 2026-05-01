@@ -188,8 +188,8 @@ export default function OrdersManagement() {
             <div className="p-8 flex-1 overflow-y-auto min-h-0">
               <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Order Items</h4>
               <div className="space-y-4">
-                {selectedOrder.items?.map((item: any) => (
-                  <div key={item._id} className="flex justify-between items-start">
+                {selectedOrder.items?.map((item: any, idx: number) => (
+                  <div key={`${selectedOrder._id}-item-${idx}`} className="flex justify-between items-start">
                     <div>
                       <p className="font-medium text-muted">
                         <span className="text-[#C97B2A] mr-2">{item.quantity}x</span>

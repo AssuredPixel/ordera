@@ -5,6 +5,7 @@ import { Bill } from '../billing/schemas/bill.schema';
 import { Order } from '../ordering/schemas/order.schema';
 import { MenuItem } from '../menu/schemas/menu-item.schema';
 import { BillStatus } from '../../common/enums/bill-status.enum';
+import { OrderStatus } from '../../common/enums/order-status.enum';
 
 @Injectable()
 export class ReportsService {
@@ -42,6 +43,7 @@ export class ReportsService {
       {
         $match: {
           branchId: new Types.ObjectId(branchId),
+          status: { $ne: OrderStatus.CANCELLED },
           createdAt: { $gte: startDate, $lte: endDate },
         },
       },
@@ -51,7 +53,15 @@ export class ReportsService {
           _id: '$items.menuItemId',
           name: { $first: '$items.name' },
           quantity: { $sum: '$items.quantity' },
-          revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          // Use lineTotal.amount if available, fallback to unitPrice.amount * quantity
+          revenue: { 
+            $sum: { 
+              $ifNull: [
+                '$items.lineTotal.amount', 
+                { $multiply: [{ $ifNull: ['$items.unitPrice.amount', 0] }, '$items.quantity'] }
+              ] 
+            } 
+          },
         },
       },
       { $sort: { revenue: -1 } },

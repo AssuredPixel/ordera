@@ -220,7 +220,7 @@ export default function ReportsPage() {
                 <h4 className="font-bold text-gray-900 truncate">{item.name}</h4>
                 <p className="text-xs text-gray-400">{item.quantity} units sold</p>
               </div>
-              <p className="text-xl font-display text-[#1A1A2E]">₦{(item.revenue / 100).toLocaleString()}</p>
+              <p className="text-xl font-display text-[#1A1A2E]">₦{((item.revenue || 0) / 100).toLocaleString()}</p>
             </div>
           ))}
         </div>

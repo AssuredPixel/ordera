@@ -200,6 +200,9 @@ export class AuthService {
       organizationId: user.organizationId || null,
       branchId: user.branchId || null,
       subdomain,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || null,
     };
     return this.jwtService.signAsync(payload);
   }

@@ -19,8 +19,8 @@ export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @Get('threads')
-  async getThreads(@GetUser('userId') userId: string) {
-    return this.messagesService.findUserThreads(userId);
+  async getThreads(@GetUser() user: any) {
+    return this.messagesService.findUserThreads(user.userId, user);
   }
 
   @Post('threads')

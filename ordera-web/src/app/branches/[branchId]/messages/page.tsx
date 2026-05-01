@@ -135,12 +135,12 @@ export default function MessagingPage() {
   const otherMember = selectedThread?.members?.find((m: any) => m._id !== user?.userId);
 
   return (
-    <div className="h-[calc(100vh-120px)] flex bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+    <div className="h-full flex bg-white overflow-hidden">
       
       {/* ── THREAD LIST (LEFT) ── */}
       <div className={`w-full md:w-80 lg:w-96 border-r border-gray-100 flex flex-col ${selectedThreadId ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between mb-6">
+        <div className="p-4 md:p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
             <button 
               onClick={() => setIsNewChatModalOpen(true)}
@@ -227,7 +227,7 @@ export default function MessagingPage() {
         ) : (
           <>
             {/* Chat Header */}
-            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-4 md:px-8 py-4 md:py-6 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button 
                   onClick={() => setSelectedThreadId(null)}
@@ -260,7 +260,7 @@ export default function MessagingPage() {
             {/* Messages Area */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-8 space-y-6 bg-gray-50/30"
+              className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 bg-gray-50/30"
             >
               {isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full text-gray-400">Loading history...</div>
@@ -285,7 +285,7 @@ export default function MessagingPage() {
             </div>
 
             {/* Input Bar */}
-            <div className="p-8 border-t border-gray-100">
+            <div className="p-4 md:p-8 border-t border-gray-100">
               <form 
                 onSubmit={handleSendMessage}
                 className="flex items-end gap-4"
@@ -329,6 +329,7 @@ export default function MessagingPage() {
         {isNewChatModalOpen && (
           <NewChatModal 
             branchId={branchId as string} 
+            currentUserId={user?.userId}
             onClose={() => setIsNewChatModalOpen(false)}
             onSelectThread={(id) => {
               setSelectedThreadId(id);
@@ -342,7 +343,7 @@ export default function MessagingPage() {
   );
 }
 
-function NewChatModal({ branchId, onClose, onSelectThread }: { branchId: string; onClose: () => void; onSelectThread: (id: string) => void }) {
+function NewChatModal({ branchId, currentUserId, onClose, onSelectThread }: { branchId: string; currentUserId?: string; onClose: () => void; onSelectThread: (id: string) => void }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
 
@@ -361,6 +362,7 @@ function NewChatModal({ branchId, onClose, onSelectThread }: { branchId: string;
   });
 
   const filteredStaff = staffData?.active?.filter((s: any) => 
+    s._id !== currentUserId &&
     `${s.firstName} ${s.lastName}`.toLowerCase().includes(search.toLowerCase())
   ) || [];
 

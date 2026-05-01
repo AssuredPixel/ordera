@@ -18,6 +18,8 @@ import { NotificationType } from '../../common/enums/notification-type.enum';
 import { OrderingGateway } from './ordering.gateway';
 import { Branch } from '../branches/branch.schema';
 import { PusherService } from '../messages/pusher.service';
+import { Role } from '../../common/enums/role.enum';
+import { BillsService } from '../billing/bills.service';
 
 @Injectable()
 export class OrderingService {
@@ -30,6 +32,7 @@ export class OrderingService {
     private readonly notificationsService: NotificationsService,
     private readonly gateway: OrderingGateway,
     private readonly pusherService: PusherService,
+    private readonly billsService: BillsService,
   ) { }
 
   async createOrder(user: any, data: any) {
@@ -48,7 +51,7 @@ export class OrderingService {
       organizationId: user.organizationId,
       branchId: user.branchId,
       waiterId: user.userId,
-      waiterName: `${user.firstName} ${user.lastName}`,
+      waiterName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Staff',
       status: OrderStatus.PENDING,
       businessDayId: activeDay?._id,
       shiftId: activeShift?._id,
@@ -140,6 +143,18 @@ export class OrderingService {
     order.subtotal = { amount: subtotal, currency: 'NGN' };
     order.tax = { amount: taxAmount, currency: 'NGN' };
     order.total = { amount: subtotal + taxAmount, currency: 'NGN' };
+
+    // Also update existing bill if it exists
+    try {
+      await this.billsService.updateBillItems(order._id, {
+        items: JSON.parse(JSON.stringify(order.items)),
+        subtotal: order.subtotal,
+        tax: order.tax,
+        total: order.total
+      });
+    } catch (err) {
+      // Quiet fail if bill doesn't exist
+    }
   }
 
   async updateStatus(orderId: string, branchId: string, newStatus: OrderStatus, user: any) {
@@ -154,6 +169,13 @@ export class OrderingService {
     if (newStatus === OrderStatus.SENT_TO_KITCHEN) {
       order.sentToKitchenAt = new Date();
       this.gateway.emitToKitchen(branchId, 'order:new', order);
+      
+      // Auto-create bill
+      try {
+        await this.billsService.createBill(orderId, branchId);
+      } catch (err) {
+        console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
+      }
     } else if (newStatus === OrderStatus.READY_FOR_PICKUP) {
       order.readyAt = new Date();
       // Notify waiter
@@ -200,13 +222,13 @@ export class OrderingService {
   }
 
   async findActive(branchId: string, role: string, userId: string) {
-    const query: any = { branchId: new Types.ObjectId(branchId) };
+    const query: any = { branchId };
 
     // Logic for active
     query.status = { $nin: [OrderStatus.CANCELLED, OrderStatus.BILLED] };
 
-    if (role === 'WAITER') {
-      query.waiterId = new Types.ObjectId(userId);
+    if (role === Role.WAITER) {
+      query.waiterId = userId;
     }
 
     return this.orderModel.find(query).sort({ createdAt: -1 });

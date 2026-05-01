@@ -50,7 +50,8 @@ async function request<T>(
       throw new Error(errorData.message || 'API Request failed');
     }
 
-    return response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : {} as T;
   } catch (error: any) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {

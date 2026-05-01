@@ -12,6 +12,7 @@ import { Order } from '../ordering/schemas/order.schema';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 import { PaymentMethod } from '../../common/enums/payment-method.enum';
 import { PusherService } from '../messages/pusher.service';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class BillsService {
@@ -24,8 +25,15 @@ export class BillsService {
   async createBill(orderId: string, branchId: string) {
     const order = await this.orderModel.findOne({ _id: orderId, branchId });
     if (!order) throw new NotFoundException('Order not found');
-    if (order.status !== OrderStatus.SERVED) {
-      throw new BadRequestException('Order must be SERVED before billing');
+    const allowedStatuses = [
+      OrderStatus.SENT_TO_KITCHEN,
+      OrderStatus.IN_PREPARATION,
+      OrderStatus.READY_FOR_PICKUP,
+      OrderStatus.PICKED_UP,
+      OrderStatus.SERVED,
+    ];
+    if (!allowedStatuses.includes(order.status)) {
+      throw new BadRequestException('Order must be sent to kitchen before billing');
     }
 
     const existing = await this.billModel.findOne({ orderId: order._id });
@@ -49,8 +57,9 @@ export class BillsService {
       businessDayId: order.businessDayId,
     });
 
-    order.status = OrderStatus.BILLED;
-    await order.save();
+    // We don't mark as BILLED yet, just tracking
+    // order.status = OrderStatus.BILLED;
+    // await order.save();
 
     return bill;
   }
@@ -104,13 +113,19 @@ export class BillsService {
       waiterName: bill.waiterName,
     });
 
+    // Update order status to BILLED
+    await this.orderModel.updateOne(
+      { _id: bill.orderId },
+      { $set: { status: OrderStatus.BILLED } }
+    );
+
     return bill.save();
   }
 
   async findActive(branchId: string, role: string, userId: string) {
-    const query: any = { branchId: new Types.ObjectId(branchId), status: BillStatus.ACTIVE };
-    if (role === 'WAITER') {
-      query.waiterId = new Types.ObjectId(userId);
+    const query: any = { branchId, status: BillStatus.ACTIVE };
+    if (role === Role.WAITER) {
+      query.waiterId = userId;
     }
     return this.billModel.find(query).sort({ createdAt: -1 });
   }
@@ -136,5 +151,12 @@ export class BillsService {
     }
 
     return bill.save();
+  }
+
+  async updateBillItems(orderId: any, data: { items: any[], subtotal: any, tax: any, total: any }) {
+    await this.billModel.updateOne(
+      { orderId, status: BillStatus.ACTIVE },
+      { $set: data }
+    );
   }
 }

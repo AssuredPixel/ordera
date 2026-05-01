@@ -40,6 +40,12 @@ export default function LoginPage() {
       router.push('/owner/dashboard');
     } else if (role === 'BRANCH_MANAGER' && user.branchId) {
       router.push(`/branches/${user.branchId}/dashboard`);
+    } else if (role === 'WAITER' && user.branchId) {
+      router.push(`/branches/${user.branchId}/waiter`);
+    } else if (role === 'KITCHEN_STAFF' && user.branchId) {
+      router.push(`/branches/${user.branchId}/kitchen`);
+    } else if (role === 'CASHIER' && user.branchId) {
+      router.push(`/branches/${user.branchId}/dashboard`);
     } else {
       // Default fallback to home instead of /dashboard (404)
       router.push('/');

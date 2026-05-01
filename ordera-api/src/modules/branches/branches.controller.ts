@@ -18,13 +18,13 @@ export class BranchesController {
   ) {}
 
   @Get()
-  @Roles(Role.OWNER, Role.BRANCH_MANAGER)
+  @Roles(Role.OWNER, Role.BRANCH_MANAGER, Role.WAITER, Role.KITCHEN_STAFF)
   async findAll(@GetUser() user: JwtPayload) {
     if (!user.organizationId) throw new UnauthorizedException('No organization associated with this user');
     
-    // If manager, only return their branch
-    if (user.role === Role.BRANCH_MANAGER) {
-      if (!user.branchId) throw new UnauthorizedException('No branch associated with this manager');
+    // If staff, only return their branch
+    if (user.role !== Role.OWNER) {
+      if (!user.branchId) throw new UnauthorizedException('No branch associated with this user');
       return [await this.branchesService.findOneByOrganization(user.branchId, user.organizationId)];
     }
 
@@ -33,20 +33,20 @@ export class BranchesController {
   }
 
   @Get(':id')
-  @Roles(Role.OWNER, Role.BRANCH_MANAGER)
+  @Roles(Role.OWNER, Role.BRANCH_MANAGER, Role.WAITER, Role.KITCHEN_STAFF)
   async findOne(@Param('id') id: string, @GetUser() user: JwtPayload) {
     if (!user.organizationId) throw new UnauthorizedException('No organization');
-    if (user.role === Role.BRANCH_MANAGER && user.branchId !== id) {
+    if ((user.role === Role.BRANCH_MANAGER || user.role === Role.WAITER || user.role === Role.KITCHEN_STAFF) && user.branchId !== id) {
       throw new UnauthorizedException('Cannot access other branches');
     }
     return this.branchesService.findOneByOrganization(id, user.organizationId);
   }
 
   @Get(':id/staff')
-  @Roles(Role.OWNER, Role.BRANCH_MANAGER)
+  @Roles(Role.OWNER, Role.BRANCH_MANAGER, Role.WAITER, Role.KITCHEN_STAFF)
   async getStaff(@Param('id') id: string, @GetUser() user: JwtPayload) {
     if (!user.organizationId) throw new UnauthorizedException('No organization');
-    if (user.role === Role.BRANCH_MANAGER && user.branchId !== id) {
+    if ((user.role === Role.BRANCH_MANAGER || user.role === Role.WAITER || user.role === Role.KITCHEN_STAFF) && user.branchId !== id) {
       throw new UnauthorizedException('Cannot access staff of other branches');
     }
     return this.branchesService.getBranchStaff(id, user.organizationId);

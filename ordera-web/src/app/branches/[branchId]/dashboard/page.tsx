@@ -157,8 +157,8 @@ export default function BranchDashboard() {
 
           {/* Live Orders (Placeholder) */}
           <Section title="Live Orders" icon={Clock}>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              <table className="w-full text-left text-sm">
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-x-auto">
+              <table className="w-full text-left text-sm min-w-[700px]">
                 <thead className="bg-gray-50/50 border-b border-gray-100 text-gray-500 font-medium">
                   <tr>
                     <th className="px-6 py-4">Order #</th>
@@ -166,12 +166,13 @@ export default function BranchDashboard() {
                     <th className="px-6 py-4">Waiter</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4">Time</th>
+                    <th className="px-6 py-4 w-4">{/* Padding spacer */}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {isLoadingOrders ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-400 italic">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-400 italic">
                         Loading live orders...
                       </td>
                     </tr>
@@ -187,11 +188,12 @@ export default function BranchDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-gray-500">{format(new Date(order.createdAt), 'hh:mm a')}</td>
+                        <td className="px-6 py-4 w-4">{/* Padding spacer */}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-400 italic">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-400 italic">
                         No active orders at the moment.
                       </td>
                     </tr>
@@ -203,8 +205,8 @@ export default function BranchDashboard() {
 
           {/* Performance Table */}
           <Section title="Staff Performance Today" icon={BarChart3}>
-            <div className="bg-white rounded-2xl border border-gray-100 p-2">
-              <table className="w-full text-sm">
+            <div className="bg-white rounded-2xl border border-gray-100 p-2 overflow-x-auto">
+              <table className="w-full text-sm min-w-[500px]">
                 <thead className="text-gray-400 font-medium border-b border-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left">Staff</th>
