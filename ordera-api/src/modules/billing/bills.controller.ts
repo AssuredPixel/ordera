@@ -25,6 +25,9 @@ export class BillsController {
     @GetUser() user: any,
     @Query('status') status?: string,
   ) {
+    if (status === 'past') {
+      return this.billsService.findHistory(user.branchId, user.role, user.userId);
+    }
     return this.billsService.findActive(user.branchId, user.role, user.userId);
   }
 

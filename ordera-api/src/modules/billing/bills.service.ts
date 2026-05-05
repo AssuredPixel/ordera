@@ -37,7 +37,7 @@ export class BillsService {
     }
 
     const existing = await this.billModel.findOne({ orderId: order._id });
-    if (existing) throw new ConflictException('Bill already exists for this order');
+    if (existing) return existing;
 
     const bill = await this.billModel.create({
       organizationId: order.organizationId,
@@ -128,6 +128,14 @@ export class BillsService {
       query.waiterId = userId;
     }
     return this.billModel.find(query).sort({ createdAt: -1 });
+  }
+
+  async findHistory(branchId: string, role: string, userId: string) {
+    const query: any = { branchId, status: { $in: [BillStatus.PAID, BillStatus.CANCELLED] } };
+    if (role === Role.WAITER) {
+      query.waiterId = userId;
+    }
+    return this.billModel.find(query).sort({ updatedAt: -1 }).limit(100);
   }
 
   async findById(id: string, branchId: string) {

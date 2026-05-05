@@ -16,9 +16,13 @@ import {
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
-import { Bill, BillStatus, PaymentMethod } from '@/types/ordera';
+import { Bill, BillStatus, PaymentMethod, Order, OrderStatus } from '@/types/ordera';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import { api } from '@/lib/api';
+import { useRealtime } from '@/lib/realtime-hook';
 
 export default function WaiterDashboard() {
   const queryClient = useQueryClient();
@@ -155,7 +159,7 @@ export default function WaiterDashboard() {
               </div>
             ) : orders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {orders.map((order) => (
+                {orders.map((order: Order) => (
                   <OrderCard key={order._id} order={order} branchId={branchId as string} />
                 ))}
               </div>
@@ -190,7 +194,7 @@ export default function WaiterDashboard() {
               </div>
             ) : bills.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {bills.map((bill) => (
+                {bills.map((bill: Bill) => (
                   <BillCard key={bill._id} bill={bill} onPay={() => setSelectedBill(bill)} />
                 ))}
               </div>
@@ -390,7 +394,15 @@ function PaymentModal({ bill, branchId, onClose, onSuccess }: { bill: Bill, bran
   );
 }
 
-function StatCard({ title, value, icon: Icon, color, loading }: any) {
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: any;
+  color: string;
+  loading?: boolean;
+}
+
+function StatCard({ title, value, icon: Icon, color, loading }: StatCardProps) {
   return (
     <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-6">
       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gray-50 ${color}`}>
@@ -407,13 +419,15 @@ function StatCard({ title, value, icon: Icon, color, loading }: any) {
 }
 
 function OrderCard({ order, branchId }: { order: Order, branchId: string }) {
-  const statusColors: any = {
+  const statusColors: Record<OrderStatus, string> = {
     [OrderStatus.PENDING]: 'bg-gray-100 text-gray-600',
     [OrderStatus.SENT_TO_KITCHEN]: 'bg-blue-100 text-blue-600',
     [OrderStatus.IN_PREPARATION]: 'bg-amber-100 text-amber-600',
     [OrderStatus.READY_FOR_PICKUP]: 'bg-emerald-100 text-emerald-600 border-2 border-emerald-500 animate-pulse',
     [OrderStatus.PICKED_UP]: 'bg-purple-100 text-purple-600',
     [OrderStatus.SERVED]: 'bg-indigo-100 text-indigo-600',
+    [OrderStatus.CANCELLED]: 'bg-red-100 text-red-600',
+    [OrderStatus.BILLED]: 'bg-gray-100 text-gray-500',
   };
 
   return (

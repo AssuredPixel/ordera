@@ -29,10 +29,16 @@ export default function WaiterBillsPage() {
     refetchInterval: 30000,
   });
 
+  const { data: pastBills = [], isLoading: isLoadingPast } = useQuery({
+    queryKey: ['waiter-past-bills', branchId],
+    queryFn: () => api.get<any[]>('/api/bills?status=past'),
+  });
+
   const chargeMutation = useMutation({
     mutationFn: (data: any) => api.post(`/api/bills/${selectedBill._id}/charge`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waiter-bills', branchId] });
+      queryClient.invalidateQueries({ queryKey: ['waiter-past-bills', branchId] });
       toast.success('Payment processed successfully!');
       setSelectedBill(null);
     },
@@ -40,6 +46,11 @@ export default function WaiterBillsPage() {
   });
 
   const filteredBills = bills.filter(b => 
+    b.tableNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    b._id.slice(-6).includes(search)
+  );
+
+  const filteredPastBills = pastBills.filter(b => 
     b.tableNumber?.toLowerCase().includes(search.toLowerCase()) ||
     b._id.slice(-6).includes(search)
   );
@@ -94,10 +105,76 @@ export default function WaiterBillsPage() {
         <ChargeModal 
           bill={selectedBill} 
           onClose={() => setSelectedBill(null)} 
-          onConfirm={(data) => chargeMutation.mutate(data)}
+          onConfirm={(data: any) => chargeMutation.mutate(data)}
           isLoading={chargeMutation.isPending}
         />
       )}
+
+      {/* ── BILL HISTORY ── */}
+      <div className="pt-8 mt-8 border-t border-gray-100">
+        <h2 className="font-display text-2xl text-[#1A1A2E] mb-6">Bill History</h2>
+        
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 text-gray-400 text-xs uppercase tracking-widest">
+                  <th className="p-6 font-bold border-b border-gray-100">Bill ID</th>
+                  <th className="p-6 font-bold border-b border-gray-100">Table / Info</th>
+                  <th className="p-6 font-bold border-b border-gray-100">Amount</th>
+                  <th className="p-6 font-bold border-b border-gray-100">Status</th>
+                  <th className="p-6 font-bold border-b border-gray-100">Date Paid</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {isLoadingPast ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-gray-400 animate-pulse">Loading history...</td>
+                  </tr>
+                ) : filteredPastBills.length > 0 ? (
+                  filteredPastBills.map((bill) => (
+                    <tr key={bill._id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="p-6 font-mono text-xs text-gray-500 uppercase">
+                        #{bill._id.slice(-6)}
+                      </td>
+                      <td className="p-6">
+                        <p className="font-bold text-[#1A1A2E]">
+                          {bill.tableNumber ? `Table ${bill.tableNumber}` : 'Takeaway'}
+                        </p>
+                        {bill.customerName && <p className="text-xs text-gray-400 mt-0.5">{bill.customerName}</p>}
+                      </td>
+                      <td className="p-6 font-bold text-[#C97B2A]">
+                        ₦{(bill.total.amount / 100).toLocaleString()}
+                      </td>
+                      <td className="p-6">
+                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase ${
+                          bill.status === 'PAID' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {bill.status}
+                        </span>
+                      </td>
+                      <td className="p-6 text-sm text-gray-500 font-medium">
+                        {bill.paidAt ? (
+                          <div className="flex items-center gap-2">
+                            <Clock size={14} className="text-gray-300" />
+                            {format(new Date(bill.paidAt), 'MMM d, hh:mm a')}
+                          </div>
+                        ) : '-'}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="p-12 text-center text-gray-400">
+                      No past bills found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -177,3 +177,46 @@ export interface Bill {
   };
   createdAt: string;
 }
+
+export enum ReconciliationStatus {
+  OPEN = 'OPEN',
+  IN_REVIEW = 'IN_REVIEW',
+  COMPLETED = 'COMPLETED',
+  FLAGGED = 'FLAGGED',
+}
+
+export enum ReconciliationLineStatus {
+  PENDING = 'PENDING',
+  VERIFIED = 'VERIFIED',
+  FLAGGED = 'FLAGGED',
+}
+
+export interface ReconciliationLine {
+  waiterId: string;
+  waiterName: string;
+  expectedCash: Money;
+  expectedCard: Money;
+  expectedTransfer: Money;
+  expectedTotal: Money;
+  actualCash: Money;
+  actualCard: Money;
+  actualTransfer: Money;
+  actualTotal: Money;
+  discrepancy: Money;
+  status: ReconciliationLineStatus;
+  flagReason?: string;
+}
+
+export interface Reconciliation {
+  _id: string;
+  branchId: string;
+  businessDayId: string;
+  businessDayName: string;
+  status: ReconciliationStatus;
+  lines: ReconciliationLine[];
+  totalExpected: Money;
+  totalActual: Money;
+  totalDiscrepancy: Money;
+  createdAt: string;
+  updatedAt: string;
+}

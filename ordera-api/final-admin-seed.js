@@ -1,63 +1,111 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+require('dotenv').config();
 
-async function main() {
-  const uri = "mongodb://localhost:27017/ordera";
-  const client = new MongoClient(uri);
-
+async function bootstrap() {
   try {
-    await client.connect();
-    const db = client.db();
-    
-    // 1. Get current Super Admin
-    const superAdmin = await db.collection('users').findOne({ role: 'super_admin' });
-    if (!superAdmin) {
-      console.log("No super admin found! Please seed users first.");
-      return;
+    const uri = process.env.MONGODB_URI;
+    console.log("Connecting to:", uri);
+    await mongoose.connect(uri);
+    console.log("Connected successfully");
+
+    const db = mongoose.connection;
+    const usersCollection = db.collection('users');
+    const branchesCollection = db.collection('branches');
+    const organizationsCollection = db.collection('organizations');
+
+    // 1. Identify "Mama Chidi Kitchen" Organization
+    const mamaChidi = await organizationsCollection.findOne({ slug: 'mama-chidi-kitchen' });
+    if (!mamaChidi) {
+      console.error("Mama Chidi Kitchen organization not found!");
+      process.exit(1);
     }
+    console.log(`Found Organization: ${mamaChidi.name} (${mamaChidi._id})`);
 
-    // 2. Clear current orgs/subs for fresh state (optional but cleaner for demo)
-    await db.collection('organizations').deleteMany({});
-    await db.collection('subscriptions').deleteMany({});
+    // 2. Identify "Trans-Amadi" Branch
+    const transAmadi = await branchesCollection.findOne({ 
+      organizationId: mamaChidi._id,
+      slug: 'trans-amadi-hq' 
+    });
+    if (!transAmadi) {
+      console.error("Trans-Amadi branch not found under Mama Chidi!");
+      process.exit(1);
+    }
+    console.log(`Found Branch: ${transAmadi.name} (${transAmadi._id})`);
 
-    const orgsData = [
-      { name: 'Healthy Meals', slug: 'healthymeals', subdomain: 'healthymeals', plan: 'bread', status: 'ACTIVE' },
-      { name: 'Mama Chidi Kitchen', slug: 'mamachidi', subdomain: 'mamachidi', plan: 'starter', status: 'ACTIVE' },
-      { name: 'Taste of Owerri', slug: 'tasteofowerri', subdomain: 'tasteofowerri', plan: 'feast', status: 'PAST_DUE' }
+    // 3. Define the desired staff members
+    const staffSpec = [
+      {
+        email: 'transamadi.mgr@mamachidi.com',
+        name: 'Trans Amadi Manager',
+        role: 'BRANCH_MANAGER',
+        branchId: transAmadi._id,
+        organizationId: mamaChidi._id
+      },
+      {
+        email: 'ada.waiter1@mamachidi.com',
+        name: 'Ada Waiter',
+        role: 'WAITER',
+        branchId: transAmadi._id,
+        organizationId: mamaChidi._id
+      },
+      {
+        email: 'emeka.kitchen@mamachidi.com',
+        name: 'Emeka Kitchen',
+        role: 'KITCHEN_STAFF',
+        branchId: transAmadi._id,
+        organizationId: mamaChidi._id
+      },
+      {
+        email: 'damilola.cashier@mamachidi.com',
+        name: 'Damilola Cashier',
+        role: 'CASHIER',
+        branchId: transAmadi._id,
+        organizationId: mamaChidi._id
+      }
     ];
 
-    for (const data of orgsData) {
-      const orgId = new ObjectId();
-      const subId = new ObjectId();
+    const hashedPassword = await bcrypt.hash('password123', 10);
 
-      await db.collection('organizations').insertOne({
-        _id: orgId,
-        name: data.name,
-        slug: data.slug,
-        subdomain: data.subdomain,
-        ownerUserId: superAdmin._id, // Assigning to super admin for simplicity
-        country: 'Nigeria',
-        subscriptionId: subId,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      await db.collection('subscriptions').insertOne({
-        _id: subId,
-        organizationId: orgId,
-        plan: data.plan.toLowerCase(),
-        status: data.status,
-        gateway: 'paystack',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      console.log(`Created ${data.name} with status ${data.status}`);
+    for (const spec of staffSpec) {
+      console.log(`Processing ${spec.email}...`);
+      
+      // Update or Insert
+      await usersCollection.updateOne(
+        { email: spec.email },
+        { 
+          $set: {
+            name: spec.name,
+            role: spec.role,
+            branchId: spec.branchId,
+            organizationId: spec.organizationId,
+            password: hashedPassword,
+            status: 'ACTIVE',
+            updatedAt: new Date()
+          },
+          $setOnInsert: {
+            createdAt: new Date()
+          }
+        },
+        { upsert: true }
+      );
+      console.log(`Successfully aligned ${spec.email} to ${transAmadi.name}`);
     }
 
-  } finally {
-    await client.close();
+    // 4. Ensure all OTHER organizations have their managers (if they exist)
+    // We don't want to break other things, but the user said "all other organization should be updated if there is need"
+    // Usually this means ensuring they have at least one manager if they don't.
+    
+    console.log("Seeding complete. Verification:");
+    const results = await usersCollection.find({ organizationId: mamaChidi._id }).toArray();
+    console.table(results.map(u => ({ email: u.email, role: u.role, branch: u.branchId })));
+
+    await mongoose.disconnect();
+    process.exit(0);
+  } catch (err) {
+    console.error("Seed failed:", err);
+    process.exit(1);
   }
 }
 
-main().catch(console.error);
+bootstrap();

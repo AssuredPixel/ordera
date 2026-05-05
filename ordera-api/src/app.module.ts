@@ -20,6 +20,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { WaiterModule } from './modules/waiter/waiter.module';
 import { SubdomainMiddleware } from './common/middleware/subdomain.middleware';
+import { ReconciliationModule } from './modules/reconciliation/reconciliation.module';
 
 @Controller('ping')
 class PingController {
@@ -60,6 +61,7 @@ class PingController {
     DashboardModule,
     ReportsModule,
     WaiterModule,
+    ReconciliationModule,
   ],
   controllers: [PingController],
   providers: [],

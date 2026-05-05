@@ -28,7 +28,7 @@ export default function BranchLayout({
     const userRole = (user?.role || '').toUpperCase();
 
     // Allowed roles for branch-level access
-    const allowedRoles = ['BRANCH_MANAGER', 'OWNER', 'WAITER', 'KITCHEN_STAFF'];
+    const allowedRoles = ['BRANCH_MANAGER', 'OWNER', 'WAITER', 'KITCHEN_STAFF', 'CASHIER'];
 
     if (!allowedRoles.includes(userRole)) {
       router.replace('/owner/dashboard');
@@ -37,7 +37,7 @@ export default function BranchLayout({
 
     // Branch matching check
     if (userRole !== 'OWNER' && user?.branchId !== branchId) {
-      const targetPath = userRole === 'WAITER' ? 'waiter' : userRole === 'KITCHEN_STAFF' ? 'kitchen' : 'dashboard';
+      const targetPath = userRole === 'WAITER' ? 'waiter' : userRole === 'KITCHEN_STAFF' ? 'kitchen' : userRole === 'CASHIER' ? 'cashier' : 'dashboard';
       router.replace(`/branches/${user?.branchId}/${targetPath}`);
       return;
     }
@@ -46,6 +46,7 @@ export default function BranchLayout({
     if (window.location.pathname.endsWith('/dashboard')) {
       if (userRole === 'WAITER') router.replace(`/branches/${branchId}/waiter`);
       if (userRole === 'KITCHEN_STAFF') router.replace(`/branches/${branchId}/kitchen`);
+      if (userRole === 'CASHIER') router.replace(`/branches/${branchId}/cashier`);
     }
   }, [user, branchId, isAuthenticated, router]);
 
@@ -69,13 +70,15 @@ export default function BranchLayout({
 
   if (!isAuthenticated) return null;
 
-  const isWaiter = user?.role?.toUpperCase() === 'WAITER';
-  const isKitchen = user?.role?.toUpperCase() === 'KITCHEN_STAFF';
+  const userRole = user?.role?.toUpperCase();
+  const isWaiter = userRole === 'WAITER';
+  const isKitchen = userRole === 'KITCHEN_STAFF';
+  const isCashier = userRole === 'CASHIER';
 
-  // KITCHEN FULL-SCREEN LAYOUT
-  if (isKitchen) {
+  // KITCHEN & CASHIER FULL-SCREEN LAYOUT
+  if (isKitchen || isCashier) {
     return (
-      <div className="min-h-screen bg-[#111111]">
+      <div className={`min-h-screen ${isKitchen ? 'bg-[#111111]' : 'bg-[#F8F9FA]'}`}>
         {children}
       </div>
     );

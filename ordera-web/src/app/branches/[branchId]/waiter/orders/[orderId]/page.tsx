@@ -56,6 +56,24 @@ export default function OrderDetailPage() {
     }
   });
 
+  const pickUpMutation = useMutation({
+    mutationFn: () => api.patch(`/api/orders/${orderId}/picked-up`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['waiter-active-orders', branchId] });
+      toast.success('Order picked up!');
+    }
+  });
+
+  const serveMutation = useMutation({
+    mutationFn: () => api.patch(`/api/orders/${orderId}/served`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['waiter-active-orders', branchId] });
+      toast.success('Order served to customer! 🍽️');
+    }
+  });
+
   if (isLoading) return <div className="p-20 text-center animate-pulse">Loading order...</div>;
   if (!order) return <div className="p-20 text-center">Order not found</div>;
 
@@ -169,15 +187,37 @@ export default function OrderDetailPage() {
       </div>
 
       {/* ── ACTIONS ── */}
-      {isEditable && (
+      {(isEditable || order.status === OrderStatus.READY_FOR_PICKUP || order.status === OrderStatus.PICKED_UP) && (
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 lg:static lg:bg-transparent lg:border-none lg:p-0">
-          <button 
-            onClick={() => sendToKitchenMutation.mutate()}
-            disabled={!order.items?.length || sendToKitchenMutation.isPending}
-            className="w-full bg-[#1A1A2E] text-white py-5 rounded-[2rem] font-bold text-lg flex items-center justify-center gap-3 shadow-2xl shadow-[#1A1A2E]/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-          >
-            {sendToKitchenMutation.isPending ? 'Sending...' : 'Send to Kitchen'} <ChefHat size={22} />
-          </button>
+          {isEditable && (
+            <button 
+              onClick={() => sendToKitchenMutation.mutate()}
+              disabled={!order.items?.length || sendToKitchenMutation.isPending}
+              className="w-full bg-[#1A1A2E] text-white py-5 rounded-[2rem] font-bold text-lg flex items-center justify-center gap-3 shadow-2xl shadow-[#1A1A2E]/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+            >
+              {sendToKitchenMutation.isPending ? 'Sending...' : 'Send to Kitchen'} <ChefHat size={22} />
+            </button>
+          )}
+
+          {order.status === OrderStatus.READY_FOR_PICKUP && (
+            <button 
+              onClick={() => pickUpMutation.mutate()}
+              disabled={pickUpMutation.isPending}
+              className="w-full bg-[#C97B2A] text-white py-5 rounded-[2rem] font-bold text-lg flex items-center justify-center gap-3 shadow-2xl shadow-[#C97B2A]/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+            >
+              {pickUpMutation.isPending ? 'Processing...' : 'Pick Up Order'}
+            </button>
+          )}
+
+          {order.status === OrderStatus.PICKED_UP && (
+            <button 
+              onClick={() => serveMutation.mutate()}
+              disabled={serveMutation.isPending}
+              className="w-full bg-emerald-600 text-white py-5 rounded-[2rem] font-bold text-lg flex items-center justify-center gap-3 shadow-2xl shadow-emerald-600/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+            >
+              {serveMutation.isPending ? 'Processing...' : 'Mark as Served'} <Utensils size={22} />
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -168,6 +168,17 @@ export class OrderingService {
 
     if (newStatus === OrderStatus.SENT_TO_KITCHEN) {
       order.sentToKitchenAt = new Date();
+    } else if (newStatus === OrderStatus.READY_FOR_PICKUP) {
+      order.readyAt = new Date();
+    } else if (newStatus === OrderStatus.PICKED_UP) {
+      order.pickedUpAt = new Date();
+    } else if (newStatus === OrderStatus.SERVED) {
+      order.servedAt = new Date();
+    }
+
+    await order.save();
+
+    if (newStatus === OrderStatus.SENT_TO_KITCHEN) {
       this.gateway.emitToKitchen(branchId, 'order:new', order);
       
       // Auto-create bill
@@ -177,7 +188,6 @@ export class OrderingService {
         console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
       }
     } else if (newStatus === OrderStatus.READY_FOR_PICKUP) {
-      order.readyAt = new Date();
       // Notify waiter
       await this.notificationsService.createNotification({
         organizationId: order.organizationId,
@@ -189,10 +199,22 @@ export class OrderingService {
         relatedOrderId: order._id as any,
       });
       this.gateway.emitToUser(order.waiterId.toString(), 'order:ready', order);
-    } else if (newStatus === OrderStatus.PICKED_UP) {
-      order.pickedUpAt = new Date();
+
+      // Attempt to create bill if it wasn't already created
+      try {
+        await this.billsService.createBill(orderId, branchId);
+      } catch (err) {
+        console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
+      }
     } else if (newStatus === OrderStatus.SERVED) {
-      order.servedAt = new Date();
+      // Attempt to create bill if it wasn't already created (e.g. fast-tracked order)
+      try {
+        await this.billsService.createBill(orderId, branchId);
+      } catch (err) {
+        console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
+      }
+    } else if (newStatus === OrderStatus.PICKED_UP) {
+      // Handled above
     }
 
     // Trigger Real-time update for Dashboard/Staff
@@ -201,7 +223,7 @@ export class OrderingService {
       status: newStatus,
     });
 
-    return order.save();
+    return order;
   }
 
   private validateTransition(current: OrderStatus, next: OrderStatus) {
