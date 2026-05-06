@@ -71,14 +71,7 @@ export class OrderingService {
   }
 
   async addItem(orderId: string, userId: string, branchId: string, data: any) {
-    const order = await this.orderModel.findOne({ _id: orderId, branchId });
-    if (!order) throw new NotFoundException('Order not found');
-    if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Cannot add items to an order that is not PENDING');
-    }
-
     const menuItem = await this.menuItemModel.findById(data.menuItemId);
-    // In a real scenario, we'd call a virtual or check the status
     if (!menuItem || menuItem.stockStatus === StockStatus.FINISHED) {
       throw new BadRequestException('Item is not orderable');
     }
@@ -99,9 +92,7 @@ export class OrderingService {
     }
 
     const lineTotalAmount = (unitPrice.amount + addonsTotal) * data.quantity;
-
-    // 2. Add item to array
-    order.items.push({
+    const newItem = {
       menuItemId: menuItem._id as any,
       name: menuItem.name,
       unitPrice,
@@ -109,48 +100,68 @@ export class OrderingService {
       selectedAddons,
       lineTotal: { amount: lineTotalAmount, currency: unitPrice.currency },
       notes: data.notes,
-    });
+    };
 
-    // 3. Recalculate totals
+    // 2. Atomic update to order
+    const order = await this.orderModel.findOneAndUpdate(
+      { _id: orderId, branchId, status: OrderStatus.PENDING },
+      { $push: { items: newItem } },
+      { new: true }
+    );
+
+    if (!order) {
+      throw new BadRequestException('Order not found or not in PENDING status');
+    }
+
+    // 3. Recalculate totals (atomic is harder for totals due to tax logic, but we can still improve)
     await this.recalculateTotals(order);
-    return order.save();
+    return order;
   }
 
   async removeItem(orderId: string, index: number, userId: string, branchId: string) {
-    const order = await this.orderModel.findOne({ _id: orderId, branchId });
-    if (!order) throw new NotFoundException('Order not found');
-    if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Cannot remove items from an order that is not PENDING');
-    }
+    const order = await this.orderModel.findOne({ _id: orderId, branchId, status: OrderStatus.PENDING });
+    if (!order) throw new NotFoundException('Order not found or not PENDING');
 
     if (index < 0 || index >= order.items.length) {
       throw new BadRequestException('Invalid item index');
     }
 
+    // Unfortunately index-based removal is not atomic in MongoDB in a single step with findOneAndUpdate
+    // but we can mitigate by checking status in the filter.
     order.items.splice(index, 1);
     await this.recalculateTotals(order);
     return order.save();
   }
 
   private async recalculateTotals(order: any) {
-    const subtotal = order.items.reduce((acc, item) => acc + item.lineTotal.amount, 0);
+    const subtotal = order.items.reduce((acc, item) => acc + Math.round(item.lineTotal.amount), 0);
 
     // Get branch tax rate
     const branch = await this.branchModel.findById(order.branchId);
     const taxRate = branch?.settings?.taxRate || 0;
     const taxAmount = Math.round(subtotal * (taxRate / 100));
 
-    order.subtotal = { amount: subtotal, currency: 'NGN' };
-    order.tax = { amount: taxAmount, currency: 'NGN' };
-    order.total = { amount: subtotal + taxAmount, currency: 'NGN' };
+    const total = subtotal + taxAmount;
 
-    // Also update existing bill if it exists
+    // Atomic update for totals
+    await this.orderModel.updateOne(
+      { _id: order._id },
+      {
+        $set: {
+          subtotal: { amount: subtotal, currency: 'NGN' },
+          tax: { amount: taxAmount, currency: 'NGN' },
+          total: { amount: total, currency: 'NGN' },
+        }
+      }
+    );
+
+    // Sync with bill
     try {
       await this.billsService.updateBillItems(order._id, {
         items: JSON.parse(JSON.stringify(order.items)),
-        subtotal: order.subtotal,
-        tax: order.tax,
-        total: order.total
+        subtotal: { amount: subtotal, currency: 'NGN' },
+        tax: { amount: taxAmount, currency: 'NGN' },
+        total: { amount: total, currency: 'NGN' },
       });
     } catch (err) {
       // Quiet fail if bill doesn't exist

@@ -169,7 +169,7 @@ function WaiterMenuContent() {
         <ItemSelectionModal 
           item={selectedItem} 
           onClose={() => setSelectedItem(null)} 
-          onAdd={(data) => addItemMutation.mutate(data)}
+          onAdd={(data: any) => addItemMutation.mutate(data)}
           isLoading={addItemMutation.isPending}
           canAdd={!!orderId}
         />
@@ -178,7 +178,13 @@ function WaiterMenuContent() {
   );
 }
 
-function ItemSelectionModal({ item, onClose, onAdd, isLoading, canAdd }: any) {
+function ItemSelectionModal({ item, onClose, onAdd, isLoading, canAdd }: {
+  item: any;
+  onClose: () => void;
+  onAdd: (data: any) => void;
+  isLoading: boolean;
+  canAdd: boolean;
+}) {
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);

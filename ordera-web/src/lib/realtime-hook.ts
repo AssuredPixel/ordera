@@ -42,7 +42,7 @@ export const useRealtime = (channelName: string, eventName: string, callback: (d
     return () => {
       if (pusherChannel) {
         pusherChannel.unbind(eventName, handler);
-        pusher.unsubscribe(channelName);
+        pusher?.unsubscribe(channelName);
       }
       if (socket) {
         socket.off(eventName, handler);

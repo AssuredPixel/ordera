@@ -47,7 +47,10 @@ export default function WaiterMessagesPage() {
     } else {
       toast(`New message from ${msg.senderName}`, {
         description: msg.content,
-        onClick: () => setSelectedThreadId(msg.threadId)
+        action: {
+          label: 'View',
+          onClick: () => setSelectedThreadId(msg.threadId)
+        }
       });
     }
   });

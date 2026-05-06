@@ -331,7 +331,7 @@ function getOrderStatusColor(status: OrderStatus) {
     case OrderStatus.IN_PREPARATION: return 'bg-amber-100 text-amber-600';
     case OrderStatus.READY_FOR_PICKUP: return 'bg-emerald-100 text-emerald-600';
     case OrderStatus.SERVED: return 'bg-purple-100 text-purple-600';
-    case OrderStatus.PAID: return 'bg-green-100 text-green-600';
+    case OrderStatus.BILLED: return 'bg-green-100 text-green-600';
     case OrderStatus.CANCELLED: return 'bg-red-100 text-red-600';
     default: return 'bg-gray-100 text-gray-600';
   }

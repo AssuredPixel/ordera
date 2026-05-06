@@ -115,6 +115,7 @@ export interface OrderItem {
   lineTotal: Money;
   notes?: string;
   selectedAddons?: { name: string; price: Money }[];
+  isOptimistic?: boolean;
 }
 
 export interface Order {

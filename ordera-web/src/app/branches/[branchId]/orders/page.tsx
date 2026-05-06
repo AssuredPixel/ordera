@@ -235,7 +235,7 @@ export default function OrdersManagement() {
                       cancelOrderMutation.mutate(selectedOrder._id);
                     }
                   }}
-                  disabled={cancelOrderMutation.isPending || selectedOrder.status === OrderStatus.PAID}
+                  disabled={cancelOrderMutation.isPending || selectedOrder.status === OrderStatus.BILLED}
                   className="flex-1 py-3.5 rounded-xl border border-red-500/30 text-red-400 font-bold text-sm hover:bg-red-500/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <XCircle size={18} /> Cancel Order
@@ -272,7 +272,7 @@ function getOrderStatusColor(status: string) {
     case OrderStatus.IN_PREPARATION: return 'bg-amber-100 text-amber-600';
     case OrderStatus.READY_FOR_PICKUP: return 'bg-emerald-100 text-emerald-600';
     case OrderStatus.SERVED: return 'bg-purple-100 text-purple-600';
-    case OrderStatus.PAID: return 'bg-green-100 text-green-600';
+    case OrderStatus.BILLED: return 'bg-green-100 text-green-600';
     case OrderStatus.CANCELLED: return 'bg-red-100 text-red-600';
     default: return 'bg-gray-100 text-gray-600';
   }

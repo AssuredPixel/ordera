@@ -23,6 +23,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useRealtime } from '@/lib/realtime-hook';
+import { 
+  useWaiterStats, 
+  useActiveOrders, 
+  useBills, 
+  useChargeBill 
+} from '@/lib/api-hooks';
 
 export default function WaiterDashboard() {
   const queryClient = useQueryClient();
@@ -31,25 +37,13 @@ export default function WaiterDashboard() {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
 
   // 1. Fetch Waiter Stats
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
-    queryKey: ['waiter-stats', branchId],
-    queryFn: () => api.get<any>('/api/waiter/stats'),
-    refetchInterval: 30000,
-  });
+  const { data: stats, isLoading: isLoadingStats } = useWaiterStats(branchId as string);
 
   // 2. Fetch Active Orders
-  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
-    queryKey: ['waiter-active-orders', branchId],
-    queryFn: () => api.get<Order[]>('/api/orders'),
-    refetchInterval: 15000,
-  });
+  const { data: orders = [], isLoading: isLoadingOrders } = useActiveOrders();
 
   // 3. Fetch Active Bills
-  const { data: bills = [], isLoading: isLoadingBills } = useQuery({
-    queryKey: ['waiter-active-bills', branchId],
-    queryFn: () => api.get<Bill[]>('/api/bills'),
-    refetchInterval: 15000,
-  });
+  const { data: bills = [], isLoading: isLoadingBills } = useBills(branchId as string);
 
   useRealtime(`branch-${branchId}`, 'order:ready', () => {
     // Play notification sound
@@ -283,24 +277,26 @@ function PaymentModal({ bill, branchId, onClose, onSuccess }: { bill: Bill, bran
   const [method, setMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
   const [tipAmount, setTipAmount] = useState<string>('');
   const [reference, setReference] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: charge, isPending: isSubmitting } = useChargeBill();
 
   const handleCharge = async () => {
-    setIsSubmitting(true);
-    try {
-      await api.post(`/api/bills/${bill._id}/charge`, {
+    charge({
+      billId: bill._id,
+      data: {
         method,
         reference,
         tipType: 'fixed',
         tipValue: tipAmount ? Number(tipAmount) * 100 : 0,
-      });
-      toast.success('Payment recorded successfully!');
-      onSuccess();
-    } catch (err: any) {
-      toast.error(err.message || 'Payment failed');
-    } finally {
-      setIsSubmitting(false);
-    }
+      }
+    }, {
+      onSuccess: () => {
+        toast.success('Payment recorded successfully!');
+        onSuccess();
+      },
+      onError: (err: any) => {
+        toast.error(err.message || 'Payment failed');
+      }
+    });
   };
 
   return (
