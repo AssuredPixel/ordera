@@ -74,6 +74,9 @@ export default function StaffPage() {
   };
 
   const filteredStaff = staff.filter(s => {
+    // 1. Exclude the Owner themselves from the staff list
+    if (s.role?.toUpperCase() === 'OWNER') return false;
+
     const name = `${s.firstName} ${s.lastName}`.toLowerCase();
     const email = (s.email || '').toLowerCase();
     const matchesSearch = name.includes(search.toLowerCase()) || email.includes(search.toLowerCase());
@@ -193,7 +196,7 @@ export default function StaffPage() {
                           {s.avatarUrl ? (
                             <img src={s.avatarUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            `${s.firstName[0]}${s.lastName[0]}`
+                            `${s.firstName?.[0] || ''}${s.lastName?.[0] || ''}`
                           )}
                         </div>
                         <div>
@@ -207,7 +210,7 @@ export default function StaffPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-purple-50 text-purple-700 uppercase border border-purple-100">
-                        {s.role.replace('_', ' ')}
+                        {s.role?.replace('_', ' ') || 'No Role'}
                       </span>
                     </td>
                     <td className="px-6 py-4">

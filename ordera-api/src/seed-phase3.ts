@@ -91,27 +91,50 @@ async function bootstrap() {
     const orgId = branch.organizationId;
     console.log(`Processing Branch: ${branch.name}...`);
 
-    // 1. ADD STAFF (4 new staff per branch)
-    const staffPool = [
-      { ...waiter1Names[i], role: Role.WAITER, type: 'waiter1' },
-      { ...waiter2Names[i], role: Role.WAITER, type: 'waiter2' },
-      { ...kitchenNames[i], role: Role.KITCHEN_STAFF, type: 'kitchen' },
-      { ...cashierNames[i], role: Role.CASHIER, type: 'cashier' }
-    ];
+    // --- CLEANUP ---
+    // Remove existing menu data for this branch
+    await menuItemModel.deleteMany({ branchId: branch._id });
+    await categoryModel.deleteMany({ branchId: branch._id });
+    // Remove existing transactions and threads for this branch
+    await orderModel.deleteMany({ branchId: branch._id });
+    await billModel.deleteMany({ branchId: branch._id });
+    await threadModel.deleteMany({ branchId: branch._id, isSystemThread: true });
+    // ---------------
+
+    // 1. ADD STAFF (Respects Starter Plan limit of 7 staff total)
+    const isTransAmadi = branch.slug === 'trans-amadi-hq';
+    const staffPool = isTransAmadi 
+      ? [
+          { ...waiter1Names[i], role: Role.WAITER, type: 'waiter' },
+          { ...kitchenNames[i], role: Role.KITCHEN_STAFF, type: 'kitchen' },
+          { ...cashierNames[i], role: Role.CASHIER, type: 'cashier' }
+        ]
+      : [
+          { ...waiter1Names[i], role: Role.WAITER, type: 'waiter' }
+        ];
 
     const branchStaff: any[] = [];
     for (const s of staffPool) {
       const email = `${s.first.toLowerCase()}.${s.type}@mamachidi.com`;
-      const staffUser = await userModel.create({
-        organizationId: orgId,
-        branchId: branch._id,
-        role: s.role,
-        firstName: s.first,
-        lastName: s.last,
-        email: email,
-        passwordHash: staffPassword,
-        isEmailVerified: true,
-      });
+      
+      const staffUser = await userModel.findOneAndUpdate(
+        { email: email },
+        {
+          $setOnInsert: {
+            organizationId: orgId,
+            branchId: branch._id,
+            passwordHash: staffPassword,
+            isEmailVerified: true,
+          },
+          $set: {
+            role: s.role,
+            firstName: s.first,
+            lastName: s.last,
+          }
+        },
+        { upsert: true, new: true }
+      );
+
       branchStaff.push(staffUser);
       credentials.push({ branch: branch.name, name: `${s.first} ${s.last}`, role: s.role, email });
     }
