@@ -1,19 +1,6 @@
 import type { Metadata } from 'next';
-import { DM_Sans, DM_Serif_Display } from 'next/font/google';
 import './globals.css';
 import { Providers } from '../components/Providers';
-
-const sans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-sans',
-});
-
-const display = DM_Serif_Display({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-display',
-});
 
 export const metadata: Metadata = {
   title: 'Ordera | Premium Restaurant Management & SaaS',
@@ -27,7 +14,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${display.variable} font-sans antialiased text-muted overflow-x-hidden`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display:wght@400&display=swap" rel="stylesheet" />
+        <style>{`
+          :root {
+            --font-sans: 'DM Sans', sans-serif;
+            --font-display: 'DM Serif Display', serif;
+          }
+        `}</style>
+      </head>
+      <body className="font-sans antialiased text-muted overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -92,7 +92,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ 
       user: null, 
       organization: null, 
-      token: null, 
       isAuthenticated: false 
     });
     if (typeof window !== 'undefined') window.location.href = '/login';

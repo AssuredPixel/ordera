@@ -43,8 +43,8 @@ export const IntelligencePanel = ({ isOpen, onClose }: { isOpen: boolean; onClos
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('ordera_token')}`,
         },
+        credentials: 'include',
         body: JSON.stringify({ query: text }),
       });
 

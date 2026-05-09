@@ -84,7 +84,11 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.patch('/api/owner/settings/profile', profileData);
+      // Create a clean payload, omitting empty strings for optional fields that shouldn't be validated if empty
+      const payload = { ...profileData };
+      if (!payload.email) delete payload.email;
+
+      await api.patch('/api/owner/settings/profile', payload);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {

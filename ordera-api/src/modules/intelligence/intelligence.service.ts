@@ -72,7 +72,7 @@ Rules:
       const response = await axios.post(
         'https://openrouter.ai/api/v1/chat/completions',
         {
-          model: 'anthropic/claude-3.5-sonnet',
+          model: 'openai/gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: question },
@@ -152,7 +152,7 @@ Rules:
       const response = await axios.post(
         'https://openrouter.ai/api/v1/chat/completions',
         {
-          model: 'anthropic/claude-3.5-sonnet',
+          model: 'openai/gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: question },
@@ -186,7 +186,7 @@ Rules:
         query: question,
         context,
         response: aiData,
-        aiModel: 'anthropic/claude-3.5-sonnet',
+        aiModel: 'openai/gpt-4o-mini',
         inputTokens: usage.prompt_tokens,
         outputTokens: usage.completion_tokens,
         totalTokens: usage.total_tokens,
@@ -220,10 +220,22 @@ Rules:
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const matchFilter = {
-      branchId: new Types.ObjectId(user.branchId),
+    const matchFilter: any = {
       createdAt: { $gte: today },
     };
+
+    const generalFilter: any = {};
+    let branchName = 'Ordera Platform';
+
+    if (user.branchId) {
+      matchFilter.branchId = new Types.ObjectId(user.branchId);
+      generalFilter.branchId = new Types.ObjectId(user.branchId);
+      branchName = 'Current Branch';
+    } else if (user.organizationId) {
+      matchFilter.organizationId = new Types.ObjectId(user.organizationId);
+      generalFilter.organizationId = new Types.ObjectId(user.organizationId);
+      branchName = 'Organization (All Branches)';
+    }
 
     // Revenue
     const revenueAggregation = await this.billModel.aggregate([
@@ -235,13 +247,13 @@ Rules:
     // Order Counts
     const todayOrderCount = await this.orderModel.countDocuments(matchFilter);
     const activeOrderCount = await this.orderModel.countDocuments({
-      branchId: user.branchId,
+      ...generalFilter,
       status: { $in: [OrderStatus.SENT_TO_KITCHEN, OrderStatus.IN_PREPARATION] },
     });
 
     // Staff on shift
     const staffOnShift = await this.userModel.countDocuments({
-      branchId: user.branchId,
+      ...generalFilter,
       currentShiftId: { $ne: null },
     });
 
@@ -257,20 +269,20 @@ Rules:
 
     // Stock Status
     const lowStockItems = await this.menuItemModel.find({
-      branchId: user.branchId,
+      ...generalFilter,
       stockStatus: StockStatus.LOW,
       isActive: true,
     }).distinct('name');
 
     const finishedStockItems = await this.menuItemModel.find({
-      branchId: user.branchId,
+      ...generalFilter,
       stockStatus: StockStatus.FINISHED,
       isActive: true,
     }).distinct('name');
 
     // Period Label (Current Shift)
     const activeShift = await this.shiftModel.findOne({
-      branchId: user.branchId,
+      ...generalFilter,
       status: 'open',
     });
     const periodLabel = activeShift ? `Active Shift: ${activeShift.name}` : `Day: ${today.toDateString()}`;
@@ -282,7 +294,7 @@ Rules:
     return {
       queryDate: new Date(),
       userRole: user.role,
-      branchName: 'Current Branch', // In reality fetch from BranchModel
+      branchName,
       periodLabel,
       todayRevenue,
       todayOrderCount,
@@ -295,7 +307,7 @@ Rules:
     };
   }
 
-  async getUsage(branchId: string) {
+  async getUsage(user: any) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -303,9 +315,16 @@ Rules:
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
 
+    const filter: any = { status: 'success' };
+    if (user.branchId) {
+      filter.branchId = new Types.ObjectId(user.branchId);
+    } else if (user.organizationId) {
+      filter.organizationId = new Types.ObjectId(user.organizationId);
+    }
+
     const [todayUsage, monthUsage] = await Promise.all([
       this.aiQueryModel.aggregate([
-        { $match: { branchId: new Types.ObjectId(branchId), createdAt: { $gte: today }, status: 'success' } },
+        { $match: { ...filter, createdAt: { $gte: today } } },
         {
           $group: {
             _id: null,
@@ -316,9 +335,8 @@ Rules:
         },
       ]),
       this.aiQueryModel.countDocuments({
-        branchId: new Types.ObjectId(branchId),
+        ...filter,
         createdAt: { $gte: monthStart },
-        status: 'success',
       }),
     ]);
 

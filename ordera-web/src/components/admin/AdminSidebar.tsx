@@ -24,9 +24,10 @@ const navItems = [
 interface AdminSidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  onAiToggle?: () => void;
 }
 
-export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+export function AdminSidebar({ isOpen, onClose, onAiToggle }: AdminSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
 
@@ -85,6 +86,17 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             </div>
           </div>
         </div>
+
+        <button 
+          onClick={() => {
+            onClose?.();
+            onAiToggle?.();
+          }}
+          className="w-full flex items-center gap-2 px-3 py-2.5 mb-2 text-xs font-bold text-white bg-brand/10 border border-brand/20 hover:bg-brand hover:text-sidebar rounded-lg transition-all group"
+        >
+          <Zap size={14} className="text-brand group-hover:text-sidebar" />
+          Ordera AI <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-brand/20 text-brand group-hover:bg-sidebar/20 group-hover:text-sidebar">CTRL+K</span>
+        </button>
 
         <button
           onClick={() => logout()}

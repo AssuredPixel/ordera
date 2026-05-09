@@ -309,7 +309,7 @@ export default function OwnerDashboardPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-[280px]" />
             ))}
@@ -321,7 +321,7 @@ export default function OwnerDashboardPage() {
             <p className="text-sm mt-1">Add your first branch to get started</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             {stats?.branchSummaries.map((branch) => (
               <BranchCard key={branch.branchId} branch={branch} />
             ))}

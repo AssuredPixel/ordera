@@ -44,10 +44,10 @@ export class AIContext {
 
 @Schema({ timestamps: { createdAt: true, updatedAt: false } })
 export class AIQuery extends Document {
-  @Prop({ type: Types.ObjectId, required: true, ref: 'Organization' })
+  @Prop({ type: Types.ObjectId, ref: 'Organization' })
   organizationId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, required: true, ref: 'Branch' })
+  @Prop({ type: Types.ObjectId, ref: 'Branch' })
   branchId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, required: true, ref: 'User' })

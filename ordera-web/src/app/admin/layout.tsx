@@ -6,13 +6,33 @@ import { useAuthStore } from '@/lib/auth-store';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Loader2 } from 'lucide-react';
 import { DashboardHeader } from '@/components/common/DashboardHeader';
+import { IntelligencePanel } from '@/components/ai/IntelligencePanel';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading, loadUser } = useAuthStore();
   const [isAuthorized, setIsAuthorized] = useState(false);
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      loadUser();
+    }
+  }, []);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsAiOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     // SECURITY CHECK: Log current state for debugging (remove in production)
@@ -33,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [user, isAuthenticated, isLoading, router]);
 
 
-  if (isLoading || !isAuthorized) {
+  if (isLoading || !isAuthorized || !mounted) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#1A1A2E] text-white">
         <Loader2 className="animate-spin text-brand mb-4" size={40} />
@@ -54,7 +74,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
 
-      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <AdminSidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        onAiToggle={() => setIsAiOpen(true)}
+      />
       
       <div className="flex-1 flex flex-col min-w-0 lg:ml-[260px]">
         <DashboardHeader 
@@ -65,6 +89,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
+
+      <IntelligencePanel isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+      
+      {isAiOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          onClick={() => setIsAiOpen(false)}
+        />
+      )}
     </div>
   );
 }

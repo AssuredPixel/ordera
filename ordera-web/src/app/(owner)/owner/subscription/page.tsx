@@ -128,9 +128,9 @@ export default function SubscriptionPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* CURRENT PLAN CARD */}
-        <div className="lg:col-span-1 bg-white border border-gray-100 rounded-[40px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div className="xl:col-span-1 bg-white border border-gray-100 rounded-[40px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
            <div className="absolute top-0 right-0 p-8 text-brand/5">
               <ShieldCheck size={120} />
            </div>
@@ -181,7 +181,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* PLAN COMPARISON */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
            {plans.filter(p => p.id !== usage?.plan).map((plan) => (
              <div key={plan.id} className="bg-white border border-gray-100 rounded-[40px] p-8 shadow-sm flex flex-col hover:border-brand/30 transition-all group">
                 <div className="flex items-center justify-between mb-4">

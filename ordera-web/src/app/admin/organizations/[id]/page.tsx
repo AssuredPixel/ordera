@@ -141,7 +141,7 @@ export default function OrganizationDetailPage() {
   const status = org.subscriptionId?.status?.toUpperCase() || 'TRIAL';
 
   return (
-    <div className="p-10 max-w-7xl mx-auto pb-20">
+    <div className="p-4 md:p-10 max-w-7xl mx-auto pb-20">
       {/* NAVIGATION */}
       <button 
         onClick={() => router.back()}
@@ -197,22 +197,21 @@ export default function OrganizationDetailPage() {
         </div>
       </div>
 
-      {/* INFO GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-12">
         <InfoCard 
-          icon={<User className="text-brand" size={18} />} 
+          icon={<User className="text-brand" size={16} />} 
           label="Owner" 
           value={`${org.ownerUserId?.firstName} ${org.ownerUserId?.lastName}`} 
           subValue={org.ownerUserId?.email}
         />
         <InfoCard 
-          icon={<Phone className="text-brand" size={18} />} 
+          icon={<Phone className="text-brand" size={16} />} 
           label="Contact" 
           value={org.contactPhone} 
           subValue={org.contactEmail}
         />
         <InfoCard 
-          icon={<Calendar className="text-brand" size={18} />} 
+          icon={<Calendar className="text-brand" size={16} />} 
           label="Member Since" 
           value={new Date(org.createdAt).toLocaleDateString()} 
           subValue="Onboarding complete"
@@ -220,9 +219,9 @@ export default function OrganizationDetailPage() {
         <ClockCard label="Last Active" date={org.updatedAt} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* SUBSCRIPTION & MRR */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="xl:col-span-1 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-border-light shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-sidebar uppercase tracking-widest text-[11px]">Subscription</h3>
@@ -287,7 +286,7 @@ export default function OrganizationDetailPage() {
         </div>
 
         {/* INVOICE HISTORY */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <div className="bg-white rounded-2xl border border-border-light shadow-sm overflow-hidden h-full flex flex-col">
             <div className="p-6 border-b border-border-light bg-gray-50/30 flex justify-between items-center">
               <h3 className="font-bold text-sidebar uppercase tracking-widest text-[11px]">Invoice History</h3>
@@ -426,14 +425,14 @@ export default function OrganizationDetailPage() {
 
 function InfoCard({ icon, label, value, subValue }: any) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-border-light shadow-sm flex items-start gap-4">
-      <div className="p-2.5 bg-brand/5 rounded-xl">
+    <div className="bg-white p-5 rounded-2xl border border-border-light shadow-sm flex flex-col items-start gap-3 overflow-hidden">
+      <div className="p-2 bg-brand/5 rounded-lg shrink-0">
         {icon}
       </div>
-      <div>
+      <div className="w-full">
         <p className="text-[10px] font-bold uppercase text-muted mb-1 tracking-wider">{label}</p>
-        <p className="font-bold text-sidebar leading-tight mb-0.5">{value}</p>
-        <p className="text-[10px] text-muted truncate max-w-[140px]">{subValue}</p>
+        <p className="font-bold text-sidebar leading-tight mb-0.5 truncate">{value}</p>
+        <p className="text-[10px] text-muted truncate">{subValue}</p>
       </div>
     </div>
   );
@@ -449,14 +448,14 @@ function ClockCard({ label, date }: { label: string, date: string }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-border-light shadow-sm flex items-start gap-4">
-      <div className="p-2.5 bg-brand/5 rounded-xl">
-        <Clock className="text-brand" size={18} />
+    <div className="bg-white p-5 rounded-2xl border border-border-light shadow-sm flex flex-col items-start gap-3 overflow-hidden">
+      <div className="p-2 bg-brand/5 rounded-lg shrink-0">
+        <Clock className="text-brand" size={16} />
       </div>
-      <div>
+      <div className="w-full">
         <p className="text-[10px] font-bold uppercase text-muted mb-1 tracking-wider">{label}</p>
-        <p className="font-bold text-sidebar leading-tight mb-0.5">{getRelativeTime(date)}</p>
-        <p className="text-[10px] text-muted">{new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+        <p className="font-bold text-sidebar leading-tight mb-0.5 truncate">{getRelativeTime(date)}</p>
+        <p className="text-[10px] text-muted truncate">{new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
       </div>
     </div>
   );

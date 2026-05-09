@@ -32,7 +32,7 @@ export class IntelligenceController {
 
   @Get('usage')
   @Roles(Role.BRANCH_MANAGER, Role.OWNER)
-  async getUsage(@GetUser('branchId') branchId: string) {
-    return this.aiService.getUsage(branchId);
+  async getUsage(@GetUser() user: any) {
+    return this.aiService.getUsage(user);
   }
 }

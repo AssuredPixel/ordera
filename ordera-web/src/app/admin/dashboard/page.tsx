@@ -93,21 +93,21 @@ export default function AdminDashboard() {
   const pastDueOrgs = organizations.filter(org => org.subscriptionId?.status === 'PAST_DUE' || org.subscriptionId?.status === 'past_due');
 
   return (
-    <div className="p-10">
+    <div className="p-4 md:p-10">
       {/* HEADER */}
-      <div className="flex justify-between items-start mb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-10">
         <div>
-          <h1 className="font-display text-[28px] text-sidebar">Platform Dashboard</h1>
+          <h1 className="font-display text-2xl md:text-[28px] text-sidebar">Platform Dashboard</h1>
           <p className="text-muted text-sm mt-1">Ordera SaaS — Live overview</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-border-light rounded-lg text-sm font-medium text-sidebar hover:bg-white transition-all shadow-sm">
+        <button className="flex items-center justify-center md:justify-start gap-2 px-4 py-2 border border-border-light rounded-lg text-sm font-medium text-sidebar hover:bg-white transition-all shadow-sm w-full md:w-auto">
           <Download size={16} />
           Export Report
         </button>
       </div>
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
         <StatCard 
           title="Active Subscriptions" 
           value={stats?.activeSubscriptions || 0} 
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
           </Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left whitespace-nowrap min-w-[800px]">
             <thead>
               <tr className="bg-gray-50/80 border-b border-border-light">
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Name</th>
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
           </div>
           <div className="divide-y divide-red-100">
             {pastDueOrgs.map((org) => (
-              <div key={org._id} className="p-6 flex items-center justify-between">
+              <div key={org._id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h3 className="font-bold text-red-900">{org.name}</h3>
                   <p className="text-sm text-red-700">
@@ -225,14 +225,14 @@ export default function AdminDashboard() {
                     Status: <span className="font-bold">PAST DUE</span>
                   </p>
                 </div>
-                <div className="flex gap-4 items-center">
-                  <div className="text-right mr-4">
+                <div className="flex flex-col sm:flex-row gap-4 sm:items-center w-full md:w-auto">
+                  <div className="text-left sm:text-right mr-0 sm:mr-4">
                     <p className="text-xs text-red-600 font-medium">Days Overdue</p>
                     <p className="font-display text-lg text-red-900">4 days</p>
                   </div>
                   <button 
                     onClick={() => toast.success(`Reminder sent to ${org.ownerUserId?.email}`)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200 w-full sm:w-auto"
                   >
                     <Mail size={16} />
                     Contact Owner
