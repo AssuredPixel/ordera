@@ -7,9 +7,11 @@ import { AnnouncementBanner } from '@/components/common/AnnouncementBanner';
 import { TrialBanner } from '@/components/common/TrialBanner';
 import { OwnerSidebar } from '@/components/owner/OwnerSidebar';
 import { DashboardHeader } from '@/components/common/DashboardHeader';
+import { IntelligencePanel } from '@/components/ai/IntelligencePanel';
 
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
   const { user, isAuthenticated, isLoading, loadUser } = useAuthStore();
   const router = useRouter();
 
@@ -33,8 +35,21 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
     }
   }, [isLoading, isAuthenticated, user]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsAiOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Show nothing while auth is being determined
-  if (isLoading || !user || user.role !== 'owner') {
+  if (isLoading || !user || user.role !== 'owner' || !mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#1A1A2E' }}>
         <div className="flex flex-col items-center gap-4">
@@ -62,6 +77,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
         <OwnerSidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          onAiToggle={() => setIsAiOpen(true)}
         />
 
         {/* 240px sidebar width */}
@@ -75,6 +91,15 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
           </main>
         </div>
       </div>
+
+      <IntelligencePanel isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+      
+      {isAiOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          onClick={() => setIsAiOpen(false)}
+        />
+      )}
     </div>
   );
 }

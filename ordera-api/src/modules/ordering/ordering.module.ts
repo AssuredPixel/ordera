@@ -11,6 +11,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { MessagesModule } from '../messages/messages.module';
 import { Branch, BranchSchema } from '../branches/branch.schema';
 import { BillingModule } from '../billing/billing.module';
+import { User, UserSchema } from '../users/user.schema';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BillingModule } from '../billing/billing.module';
       { name: BusinessDay.name, schema: BusinessDaySchema },
       { name: Shift.name, schema: ShiftSchema },
       { name: Branch.name, schema: BranchSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     NotificationsModule,
     MessagesModule,

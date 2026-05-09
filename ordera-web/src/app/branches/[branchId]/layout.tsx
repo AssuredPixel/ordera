@@ -8,7 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Menu, X, User } from 'lucide-react';
 import { WaiterNav } from '@/components/branch/WaiterNav';
-import { NotificationSystem } from '@/components/branch/NotificationSystem';
+import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
+import { IntelligencePanel } from '@/components/ai/IntelligencePanel';
+import { Sparkles } from 'lucide-react';
 
 export default function BranchLayout({
   children,
@@ -16,6 +18,7 @@ export default function BranchLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
@@ -61,7 +64,18 @@ export default function BranchLayout({
   });
 
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsAiOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Hydration safeguard: return a consistent loading state on server and first client render
   if (!mounted) {
@@ -87,28 +101,37 @@ export default function BranchLayout({
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
       {isWaiter ? (
-        <WaiterNav />
+        <WaiterNav onAiToggle={() => setIsAiOpen(true)} />
       ) : (
         <ManagerSidebar 
           isOpen={isSidebarOpen} 
           onClose={() => setIsSidebarOpen(false)} 
+          onAiToggle={() => setIsAiOpen(true)}
           branchName={branch?.name}
         />
       )}
 
-      <div className={`${isWaiter ? 'lg:ml-[240px]' : 'lg:ml-[240px]'} flex flex-col min-h-screen`}>
+      <div className={`${isWaiter ? 'lg:ml-[240px]' : 'lg:ml-[240px]'} flex flex-col min-h-screen relative`}>
         {/* MOBILE HEADER */}
         {!isWaiter && (
           <header className="lg:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-40">
             <div className="flex items-center gap-3">
               <h1 className="font-display text-xl text-muted">{branch?.name || 'Ordera'}</h1>
             </div>
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 rounded-xl bg-gray-50 text-muted hover:bg-gray-100 transition-colors"
-            >
-              <Menu size={20} />
-            </button>
+            <div className="flex items-center gap-2">
+               <button 
+                onClick={() => setIsAiOpen(true)}
+                className="p-2 rounded-xl bg-amber-50 text-amber-500 hover:bg-amber-100 transition-colors"
+               >
+                <Sparkles size={20} />
+               </button>
+               <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 rounded-xl bg-gray-50 text-muted hover:bg-gray-100 transition-colors"
+              >
+                <Menu size={20} />
+              </button>
+            </div>
           </header>
         )}
 
@@ -117,7 +140,7 @@ export default function BranchLayout({
           <header className="lg:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-40">
             <h1 className="font-display text-xl text-[#1A1A2E]">{branch?.name || 'Ordera'}</h1>
             <div className="flex items-center gap-4">
-              <NotificationSystem />
+              <NotificationsPanel />
               <div className="w-8 h-8 rounded-lg bg-[#C97B2A]/10 flex items-center justify-center text-[#C97B2A]">
                 <User size={16} />
               </div>
@@ -129,7 +152,16 @@ export default function BranchLayout({
         {isWaiter && (
           <header className="hidden lg:flex h-20 bg-transparent items-center justify-end px-10 pt-6 sticky top-0 z-40 pointer-events-none">
             <div className="flex items-center gap-4 pointer-events-auto">
-              <NotificationSystem />
+              <NotificationsPanel />
+            </div>
+          </header>
+        )}
+
+        {/* DESKTOP MANAGER HEADER (Implicitly part of sidebar, but let's add a top-right action area if needed) */}
+        {!isWaiter && (
+           <header className="hidden lg:flex h-20 bg-transparent items-center justify-end px-10 pt-6 sticky top-0 z-40 pointer-events-none">
+            <div className="flex items-center gap-4 pointer-events-auto">
+              <NotificationsPanel />
             </div>
           </header>
         )}
@@ -140,11 +172,16 @@ export default function BranchLayout({
         </main>
       </div>
 
+      <IntelligencePanel isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+
       {/* MOBILE OVERLAY */}
-      {isSidebarOpen && (
+      {(isSidebarOpen || isAiOpen) && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          onClick={() => {
+            setIsSidebarOpen(false);
+            setIsAiOpen(false);
+          }}
         />
       )}
     </div>

@@ -1,17 +1,16 @@
 import { create } from 'zustand';
-import { api, setToken, clearToken } from './api';
+import { api } from './api';
 
 interface AuthState {
   user: any | null;
   organization: any | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   
   login: (email: string, password: string) => Promise<any>;
   register: (formData: any) => Promise<any>;
   loginWithGoogle: (googleToken: string) => Promise<{ requiresRegistration: boolean; data?: any; user?: any } | undefined>;
-  logout: () => void;
+  logout: () => Promise<void>;
   loadUser: () => Promise<void>;
 }
 
@@ -19,7 +18,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   organization: null,
-  token: null,
   isAuthenticated: false,
   isLoading: true,
 
@@ -27,11 +25,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const data: any = await api.post('/api/auth/login', { email, password });
-      setToken(data.accessToken);
       set({ 
         user: data.user, 
         organization: data.organization, 
-        token: data.accessToken, 
         isAuthenticated: true,
         isLoading: false 
       });
@@ -46,11 +42,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const data: any = await api.post('/api/auth/register', formData);
-      setToken(data.accessToken);
       set({ 
         user: data.user, 
         organization: data.organization, 
-        token: data.accessToken, 
         isAuthenticated: true,
         isLoading: false 
       });
@@ -71,12 +65,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { requiresRegistration: true, data: data.prefilledData };
       }
 
-      if (data.accessToken) {
-        setToken(data.accessToken);
+      if (data.user) {
         set({ 
           user: data.user, 
           organization: data.organization, 
-          token: data.accessToken, 
           isAuthenticated: true,
           isLoading: false 
         });
@@ -91,8 +83,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
 
-  logout: () => {
-    clearToken();
+  logout: async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
     set({ 
       user: null, 
       organization: null, 

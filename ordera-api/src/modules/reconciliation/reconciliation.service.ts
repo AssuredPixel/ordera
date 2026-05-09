@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Reconciliation } from './reconciliation.schema';
@@ -9,6 +9,8 @@ import { ReconciliationLineStatus } from '../../common/enums/reconciliation-line
 import { BillStatus } from '../../common/enums/bill-status.enum';
 import { PaymentMethod } from '../../common/enums/payment-method.enum';
 import { format } from 'date-fns';
+import { JwtPayload } from '../../common/types/jwt-payload.type';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class ReconciliationService {
@@ -107,9 +109,19 @@ export class ReconciliationService {
     }).sort({ createdAt: -1 });
   }
 
-  async verifyLine(id: string, waiterId: string, actuals: { cash: number; card: number; transfer: number }) {
+  async verifyLine(id: string, user: JwtPayload, waiterId: string, actuals: { cash: number; card: number; transfer: number }) {
     const recon = await this.reconModel.findById(id);
     if (!recon) throw new NotFoundException('Reconciliation not found');
+
+    // Security: Verify branch ownership
+    if (user.role !== Role.OWNER && user.branchId !== recon.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this reconciliation record');
+    }
+
+    // Business Logic: Prevent negative values (Issue 13)
+    if (actuals.cash < 0 || actuals.card < 0 || actuals.transfer < 0) {
+      throw new BadRequestException('Actual values cannot be negative');
+    }
 
     const line = recon.lines.find((l) => l.waiterId.toString() === waiterId);
     if (!line) throw new NotFoundException('Waiter line not found');
@@ -125,9 +137,14 @@ export class ReconciliationService {
     return recon.save();
   }
 
-  async flagLine(id: string, waiterId: string, reason: string) {
+  async flagLine(id: string, user: JwtPayload, waiterId: string, reason: string) {
     const recon = await this.reconModel.findById(id);
     if (!recon) throw new NotFoundException('Reconciliation not found');
+
+    // Security: Verify branch ownership
+    if (user.role !== Role.OWNER && user.branchId !== recon.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this reconciliation record');
+    }
 
     const line = recon.lines.find((l) => l.waiterId.toString() === waiterId);
     if (!line) throw new NotFoundException('Waiter line not found');
@@ -138,9 +155,14 @@ export class ReconciliationService {
     return recon.save();
   }
 
-  async completeReconciliation(id: string, userId: string) {
+  async completeReconciliation(id: string, user: JwtPayload) {
     const recon = await this.reconModel.findById(id);
     if (!recon) throw new NotFoundException('Reconciliation not found');
+
+    // Security: Verify branch ownership
+    if (user.role !== Role.OWNER && user.branchId !== recon.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this reconciliation record');
+    }
 
     const allProcessed = recon.lines.every((l) => l.status !== ReconciliationLineStatus.PENDING);
     if (!allProcessed) {
@@ -149,7 +171,7 @@ export class ReconciliationService {
 
     const hasFlags = recon.lines.some((l) => l.status === ReconciliationLineStatus.FLAGGED);
     recon.status = hasFlags ? ReconciliationStatus.FLAGGED : ReconciliationStatus.COMPLETED;
-    recon.closedByUserId = new Types.ObjectId(userId);
+    recon.closedByUserId = new Types.ObjectId(user.userId);
 
     return recon.save();
   }

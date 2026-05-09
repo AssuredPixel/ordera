@@ -10,6 +10,9 @@ import { ShiftTemplate } from './shift-template.schema';
 import { Shift } from './shift.schema';
 import { BusinessDay } from './business-day.schema';
 import { ShiftStatus } from '../../common/enums/shift-status.enum';
+import { JwtPayload } from '../../common/types/jwt-payload.type';
+import { Role } from '../../common/enums/role.enum';
+import { ForbiddenException } from '@nestjs/common';
 
 // ──────────────────────────────────── HELPER ────────────────────────────────────
 function buildDateFromTimeString(base: Date, timeStr: string): Date {
@@ -38,20 +41,28 @@ export class ShiftTemplatesService {
     });
   }
 
-  async update(id: string, data: Partial<ShiftTemplate>) {
-    const doc = await this.templateModel.findByIdAndUpdate(id, { $set: data }, { new: true });
-    if (!doc) throw new NotFoundException('ShiftTemplate not found');
-    return doc;
+  async update(id: string, user: JwtPayload, data: Partial<ShiftTemplate>) {
+    const template = await this.templateModel.findById(id);
+    if (!template) throw new NotFoundException('ShiftTemplate not found');
+
+    if (user.role !== Role.OWNER && user.branchId !== template.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this branch');
+    }
+
+    Object.assign(template, data);
+    return template.save();
   }
 
-  async softDelete(id: string) {
-    const doc = await this.templateModel.findByIdAndUpdate(
-      id,
-      { $set: { isActive: false } },
-      { new: true },
-    );
-    if (!doc) throw new NotFoundException('ShiftTemplate not found');
-    return doc;
+  async softDelete(id: string, user: JwtPayload) {
+    const template = await this.templateModel.findById(id);
+    if (!template) throw new NotFoundException('ShiftTemplate not found');
+
+    if (user.role !== Role.OWNER && user.branchId !== template.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this branch');
+    }
+
+    template.isActive = false;
+    return template.save();
   }
 }
 
@@ -118,27 +129,37 @@ export class ShiftsService {
     return { generated: created.length, shifts: created };
   }
 
-  async open(id: string, userId: string) {
+  async open(id: string, user: JwtPayload) {
     const shift = await this.shiftModel.findById(id);
     if (!shift) throw new NotFoundException('Shift not found');
+
+    if (user.role !== Role.OWNER && user.branchId !== shift.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this branch');
+    }
+
     if (shift.status !== ShiftStatus.SCHEDULED) {
       throw new BadRequestException(`Shift is already ${shift.status}`);
     }
     shift.status = ShiftStatus.OPEN;
     shift.actualStart = new Date();
-    shift.openedByUserId = new Types.ObjectId(userId);
+    shift.openedByUserId = new Types.ObjectId(user.userId);
     return shift.save();
   }
 
-  async close(id: string, userId: string) {
+  async close(id: string, user: JwtPayload) {
     const shift = await this.shiftModel.findById(id);
     if (!shift) throw new NotFoundException('Shift not found');
+
+    if (user.role !== Role.OWNER && user.branchId !== shift.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this branch');
+    }
+
     if (shift.status !== ShiftStatus.OPEN) {
       throw new BadRequestException('Shift is not open');
     }
     shift.status = ShiftStatus.CLOSED;
     shift.actualEnd = new Date();
-    shift.closedByUserId = new Types.ObjectId(userId);
+    shift.closedByUserId = new Types.ObjectId(user.userId);
     return shift.save();
   }
 }
@@ -191,15 +212,20 @@ export class BusinessDaysService {
     });
   }
 
-  async close(id: string, userId: string) {
+  async close(id: string, user: JwtPayload) {
     const day = await this.businessDayModel.findById(id);
     if (!day) throw new NotFoundException('BusinessDay not found');
+
+    if (user.role !== Role.OWNER && user.branchId !== day.branchId.toString()) {
+      throw new ForbiddenException('Access denied to this branch');
+    }
+
     if (day.status !== ShiftStatus.OPEN) {
       throw new BadRequestException('BusinessDay is not currently open');
     }
     day.status = ShiftStatus.CLOSED;
     day.actualClose = new Date();
-    day.closedByUserId = new Types.ObjectId(userId);
+    day.closedByUserId = new Types.ObjectId(user.userId);
     return day.save();
   }
 }

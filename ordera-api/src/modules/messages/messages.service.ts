@@ -75,11 +75,16 @@ export class MessagesService {
       await this.syncSystemThreads(user.userId, user.branchId, user.role);
     }
 
-    return this.threadModel
+    const threads = await this.threadModel
       .find({ memberIds: new Types.ObjectId(userId) })
       .populate('memberIds', 'firstName lastName avatar role') 
       .sort({ 'lastMessage.sentAt': -1 })
       .exec();
+
+    return {
+      teams: threads.filter(t => t.type === ThreadType.GROUP),
+      personal: threads.filter(t => t.type === ThreadType.DIRECT),
+    };
   }
 
   private async syncSystemThreads(userId: string, branchId: string, role: string) {

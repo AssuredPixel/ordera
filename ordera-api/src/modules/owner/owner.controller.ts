@@ -6,6 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 import { JwtPayload } from '../../common/types/jwt-payload.type';
+import { UpdateProfileDto, UpdateOrganizationDto } from './owner.dto';
 
 @Controller('owner')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -57,12 +58,12 @@ export class OwnerController {
   }
 
   @Patch('settings/organization')
-  async updateOrganization(@GetUser() user: JwtPayload, @Body() data: any) {
+  async updateOrganization(@GetUser() user: JwtPayload, @Body() data: UpdateOrganizationDto) {
     return this.ownerService.updateOrganization(user.organizationId as string, data);
   }
 
   @Patch('settings/profile')
-  async updateProfile(@GetUser() user: JwtPayload, @Body() data: any) {
+  async updateProfile(@GetUser() user: JwtPayload, @Body() data: UpdateProfileDto) {
     return this.ownerService.updateProfile(user.userId, data);
   }
 }

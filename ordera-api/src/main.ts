@@ -1,13 +1,16 @@
-import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from './common/pipes/validation.pipe';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
   });
+
+  // Security Headers
+  app.use(helmet());
 
   // STEP 5 — prefix 'api'
   app.setGlobalPrefix('api');
@@ -17,9 +20,16 @@ async function bootstrap() {
   
   app.use(cookieParser());
   
-  // CORS: allow FRONTEND_URL or allow all for production
+  // Tighten CORS
+  const frontendUrl = process.env.FRONTEND_URL;
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: (origin, callback) => {
+      if (!origin || (frontendUrl && origin === frontendUrl)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 

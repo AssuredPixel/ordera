@@ -20,6 +20,8 @@ import { Branch } from '../branches/branch.schema';
 import { PusherService } from '../messages/pusher.service';
 import { Role } from '../../common/enums/role.enum';
 import { BillsService } from '../billing/bills.service';
+import { JwtPayload } from '../../common/types/jwt-payload.type';
+import { User } from '../users/user.schema';
 
 @Injectable()
 export class OrderingService {
@@ -29,29 +31,41 @@ export class OrderingService {
     @InjectModel(BusinessDay.name) private readonly businessDayModel: Model<BusinessDay>,
     @InjectModel(Shift.name) private readonly shiftModel: Model<Shift>,
     @InjectModel(Branch.name) private readonly branchModel: Model<Branch>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly notificationsService: NotificationsService,
     private readonly gateway: OrderingGateway,
     private readonly pusherService: PusherService,
     private readonly billsService: BillsService,
   ) { }
 
-  async createOrder(user: any, data: any) {
+  async createOrder(user: JwtPayload, data: any) {
     // 1. Find active BusinessDay and Shift
     const activeDay = await this.businessDayModel.findOne({
       branchId: user.branchId,
+      organizationId: user.organizationId,
       status: ShiftStatus.OPEN,
     });
     const activeShift = await this.shiftModel.findOne({
       branchId: user.branchId,
+      organizationId: user.organizationId,
       status: ShiftStatus.OPEN,
     });
 
+    // Resolve waiter's display name from DB
+    const waiterUser = await this.userModel
+      .findById(user.userId)
+      .select('firstName lastName')
+      .lean();
+    const waiterName = waiterUser
+      ? `${waiterUser.firstName} ${waiterUser.lastName}`.trim()
+      : 'Staff';
+
     const order = await this.orderModel.create({
       ...data,
-      organizationId: user.organizationId,
-      branchId: user.branchId,
-      waiterId: user.userId,
-      waiterName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Staff',
+      organizationId: new Types.ObjectId(user.organizationId as string),
+      branchId: new Types.ObjectId(user.branchId as string),
+      waiterId: new Types.ObjectId(user.userId),
+      waiterName,
       status: OrderStatus.PENDING,
       businessDayId: activeDay?._id,
       shiftId: activeShift?._id,
@@ -70,8 +84,8 @@ export class OrderingService {
     return order;
   }
 
-  async addItem(orderId: string, userId: string, branchId: string, data: any) {
-    const menuItem = await this.menuItemModel.findById(data.menuItemId);
+  async addItem(orderId: string, userId: string, branchId: string, organizationId: string, data: any) {
+    const menuItem = await this.menuItemModel.findOne({ _id: data.menuItemId, branchId, organizationId });
     if (!menuItem || menuItem.stockStatus === StockStatus.FINISHED) {
       throw new BadRequestException('Item is not orderable');
     }
@@ -104,7 +118,7 @@ export class OrderingService {
 
     // 2. Atomic update to order
     const order = await this.orderModel.findOneAndUpdate(
-      { _id: orderId, branchId, status: OrderStatus.PENDING },
+      { _id: orderId, branchId, organizationId, status: OrderStatus.PENDING },
       { $push: { items: newItem } },
       { new: true }
     );
@@ -118,8 +132,8 @@ export class OrderingService {
     return order;
   }
 
-  async removeItem(orderId: string, index: number, userId: string, branchId: string) {
-    const order = await this.orderModel.findOne({ _id: orderId, branchId, status: OrderStatus.PENDING });
+  async removeItem(orderId: string, index: number, userId: string, branchId: string, organizationId: string) {
+    const order = await this.orderModel.findOne({ _id: orderId, branchId, organizationId, status: OrderStatus.PENDING });
     if (!order) throw new NotFoundException('Order not found or not PENDING');
 
     if (index < 0 || index >= order.items.length) {
@@ -168,8 +182,8 @@ export class OrderingService {
     }
   }
 
-  async updateStatus(orderId: string, branchId: string, newStatus: OrderStatus, user: any) {
-    const order = await this.orderModel.findOne({ _id: orderId, branchId });
+  async updateStatus(orderId: string, branchId: string, organizationId: string, newStatus: OrderStatus, user: JwtPayload) {
+    const order = await this.orderModel.findOne({ _id: orderId, branchId, organizationId });
     if (!order) throw new NotFoundException('Order not found');
 
     const oldStatus = order.status;
@@ -194,7 +208,7 @@ export class OrderingService {
       
       // Auto-create bill
       try {
-        await this.billsService.createBill(orderId, branchId);
+        await this.billsService.createBill(orderId, branchId, organizationId);
       } catch (err) {
         console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
       }
@@ -213,14 +227,14 @@ export class OrderingService {
 
       // Attempt to create bill if it wasn't already created
       try {
-        await this.billsService.createBill(orderId, branchId);
+        await this.billsService.createBill(orderId, branchId, organizationId);
       } catch (err) {
         console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
       }
     } else if (newStatus === OrderStatus.SERVED) {
       // Attempt to create bill if it wasn't already created (e.g. fast-tracked order)
       try {
-        await this.billsService.createBill(orderId, branchId);
+        await this.billsService.createBill(orderId, branchId, organizationId);
       } catch (err) {
         console.error(`[OrderingService] Failed to auto-create bill for order ${orderId}:`, err.message);
       }
@@ -254,8 +268,8 @@ export class OrderingService {
     }
   }
 
-  async findActive(branchId: string, role: string, userId: string) {
-    const query: any = { branchId };
+  async findActive(branchId: string, organizationId: string, role: string, userId: string) {
+    const query: any = { branchId, organizationId };
 
     // Logic for active
     query.status = { $nin: [OrderStatus.CANCELLED, OrderStatus.BILLED] };
@@ -267,7 +281,7 @@ export class OrderingService {
     return this.orderModel.find(query).sort({ createdAt: -1 });
   }
 
-  async findById(id: string, branchId: string) {
-    return this.orderModel.findOne({ _id: id, branchId });
+  async findById(id: string, branchId: string, organizationId: string) {
+    return this.orderModel.findOne({ _id: id, branchId, organizationId });
   }
 }

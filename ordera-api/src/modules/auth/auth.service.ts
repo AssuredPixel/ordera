@@ -76,30 +76,27 @@ export class AuthService {
     org.ownerUserId = user._id as any;
     await org.save();
 
-    const accessToken = await this.generateToken(user, org.subdomain);
+    const sessionId = randomUUID();
+    await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: dto.deviceName || 'Web' });
+
+    const token = await this.generateToken(user, org.subdomain, sessionId);
     
     return { 
       organization: org, 
       user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null }, 
-      accessToken
+      accessToken: token
     };
   }
 
   // 1.5. POST /api/auth/register-staff
   async registerStaff(body: { token: string; password: string }) {
-    // 1. Validate token
+    // ... validation logic remains ...
     const { valid, data: invitation } = await this.invitationService.validateToken(body.token);
-    if (!valid || !invitation) {
-      throw new UnauthorizedException('Invalid or expired invitation token');
-    }
+    if (!valid || !invitation) throw new UnauthorizedException('Invalid or expired invitation token');
 
-    // 2. Check if email somehow already exists (in case they signed up another way after invite)
     const existingUser = await this.usersService.findByEmail(invitation.email);
-    if (existingUser) {
-      throw new ConflictException('User already registered');
-    }
+    if (existingUser) throw new ConflictException('User already registered');
 
-    // 3. Create the user
     const passwordHash = await bcrypt.hash(body.password, 12);
     const user = await this.usersService.create({
       organizationId: invitation.organizationId as any,
@@ -111,18 +108,18 @@ export class AuthService {
       lastName: invitation.lastName,
     });
 
-    // 4. Mark invitation as accepted
     invitation.status = InvitationStatus.ACCEPTED;
     invitation.acceptedAt = new Date();
     invitation.acceptedByUserId = user._id as any;
     await invitation.save();
 
-    // 5. Login the user automatically
     const org = await this.orgService.findById(user.organizationId as any);
-    const accessToken = await this.generateToken(user, org?.subdomain || null);
+    const sessionId = randomUUID();
+    await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: 'Invitation Link' });
+    const token = await this.generateToken(user, org?.subdomain || null, sessionId);
 
     return {
-      accessToken,
+      accessToken: token,
       user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null },
       organization: org
     };
@@ -131,9 +128,7 @@ export class AuthService {
   // 2. POST /api/auth/login
   async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
-    if (!user || !user.isActive || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!user || !user.isActive || !user.passwordHash) throw new UnauthorizedException('Invalid credentials');
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
@@ -143,11 +138,11 @@ export class AuthService {
 
     const sessionId = randomUUID();
     await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: dto.deviceName || 'Web' });
-    const accessToken = await this.generateToken(user, subdomain);
+    const token = await this.generateToken(user, subdomain, sessionId);
     const populatedOrg = org ? await this.orgService.findById(org._id as any) : null;
 
     return { 
-      accessToken, 
+      accessToken: token, 
       user: { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, branchId: user.branchId || null },
       organization: populatedOrg 
     };
@@ -178,10 +173,9 @@ export class AuthService {
       }
 
       const org = user.organizationId ? await this.orgService.findById(user.organizationId as any) : null;
-      const accessToken = await this.generateToken(user, org?.subdomain || null);
-
       const sessionId = randomUUID();
       await this.usersService.updateLastLogin(user._id as any, sessionId, { deviceName: 'Google OAuth' });
+      const accessToken = await this.generateToken(user, org?.subdomain || null, sessionId);
 
       return { 
         accessToken, 
@@ -193,13 +187,19 @@ export class AuthService {
     }
   }
 
-  private async generateToken(user: any, subdomain: string | null) {
+  async logout(userId: string, sessionId: string) {
+    await this.usersService.removeSession(userId, sessionId);
+    return { success: true };
+  }
+
+  private async generateToken(user: any, subdomain: string | null, sessionId: string) {
     const payload = {
       userId: user._id,
       role: user.role,
       organizationId: user.organizationId || null,
       branchId: user.branchId || null,
       subdomain,
+      sessionId,
       firstName: user.firstName || null,
       lastName: user.lastName || null,
       name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || null,

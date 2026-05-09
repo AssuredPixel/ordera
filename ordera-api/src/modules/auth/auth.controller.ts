@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto } from './auth.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -11,32 +12,36 @@ export class AuthController {
 
 
   @Post('register')
-  async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
-  }
-
-  @Post('register-staff')
-  async registerStaff(@Body() body: { token: string; password: string }) {
-    return this.authService.registerStaff(body);
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async register(@Body() dto: RegisterDto, @Req() req: any) {
+    const result = await this.authService.register(dto);
+    this.setCookie(req.res, result.accessToken);
+    return result;
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
-  }
-
-  @Post('google')
-  async google(@Body('token') token: string) {
-    return this.authService.googleLogin(token);
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async login(@Body() dto: LoginDto, @Req() req: any) {
+    const result = await this.authService.login(dto);
+    this.setCookie(req.res, result.accessToken);
+    return result;
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(@GetUser('userId') userId: string, @Body('sessionId') sessionId: string) {
-    // Session removal handled in UsersService via AuthService
-    // return this.authService.logout(userId, sessionId); 
-    // Simplified logout for now.
+  async logout(@GetUser() payload: any, @Req() req: any) {
+    await this.authService.logout(payload.userId, payload.sessionId);
+    req.res.clearCookie('ordera_token');
     return { success: true };
+  }
+
+  private setCookie(res: any, token: string) {
+    res.cookie('ordera_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
+    });
   }
 
   @Get('me')

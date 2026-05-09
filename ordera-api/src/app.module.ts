@@ -2,6 +2,8 @@ import { Module, MiddlewareConsumer, RequestMethod, Controller, Get } from '@nes
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { PlatformModule } from './modules/platform/platform.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UsersModule } from './modules/users/users.module';
@@ -44,6 +46,10 @@ class PingController {
       }),
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
     PlatformModule,
     OrganizationsModule,
     UsersModule,
@@ -64,7 +70,12 @@ class PingController {
     ReconciliationModule,
   ],
   controllers: [PingController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

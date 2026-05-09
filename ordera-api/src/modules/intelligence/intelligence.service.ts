@@ -30,6 +30,73 @@ export class IntelligenceService {
     private readonly configService: ConfigService,
   ) {}
 
+  async streamQuery(user: any, question: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 1. Rate Limit Check
+    const queryCount = await this.aiQueryModel.countDocuments({
+      userId: user.userId,
+      createdAt: { $gte: today },
+    });
+
+    if (queryCount >= 30) {
+      throw new HttpException('Daily query limit reached (30 queries/day)', HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    try {
+      const context = await this.buildContext(user);
+      const systemPrompt = `You are Ordera Intelligence, the AI assistant for ${context.branchName}.
+Staff member: ${user.firstName}, Role: ${user.role}.
+
+Current operational data:
+Period: ${context.periodLabel}
+Revenue: ₦${(context.todayRevenue.amount / 100).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+Orders today: ${context.todayOrderCount}
+Active orders: ${context.activeOrderCount}
+Staff on shift: ${context.staffOnShift}
+Top item today: ${context.topItemToday || 'None yet'}
+Low stock items: ${context.lowStockItems.join(', ') || 'None'}
+Out of stock items: ${context.finishedStockItems.join(', ') || 'None'}
+Reconciliation pending: ${context.pendingReconciliation ? 'Yes' : 'No'}
+
+Rules:
+- Answer in under 150 words unless a table is needed
+- Format money as ₦X,XXX.XX
+- Never say 'As an AI' or 'I am an AI'
+- Speak like a knowledgeable colleague, not a chatbot
+- If you cannot answer from the data provided, say so directly`;
+
+      const apiKey = this.configService.get<string>('OPENROUTER_API_KEY');
+      
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: 'anthropic/claude-3.5-sonnet',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: question },
+          ],
+          max_tokens: 500,
+          stream: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://ordera.app',
+            'X-Title': 'Ordera Intelligence',
+          },
+          responseType: 'stream',
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('AI Stream Error:', error.response?.data || error.message);
+      throw new InternalServerErrorException('Failed to start AI stream');
+    }
+  }
+
   async query(user: any, question: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

@@ -10,12 +10,14 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
 interface OwnerSidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  onAiToggle?: () => void;
 }
 
 const navItems = [
@@ -26,7 +28,7 @@ const navItems = [
   { icon: Settings,        label: 'Settings',     href: '/owner/settings' },
 ];
 
-export function OwnerSidebar({ isOpen, onClose }: OwnerSidebarProps) {
+export function OwnerSidebar({ isOpen, onClose, onAiToggle }: OwnerSidebarProps) {
   const pathname = usePathname();
   const { logout, user, organization } = useAuthStore();
 
@@ -123,6 +125,14 @@ export function OwnerSidebar({ isOpen, onClose }: OwnerSidebarProps) {
             <p className="text-white/35 text-[10px] truncate">Owner</p>
           </div>
         </div>
+
+        <button
+          onClick={() => onAiToggle?.()}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 transition-all text-sm font-medium border border-amber-400/20"
+        >
+          <Sparkles size={16} />
+          <span>Ordera AI</span>
+        </button>
 
         {/* Sign out */}
         <button

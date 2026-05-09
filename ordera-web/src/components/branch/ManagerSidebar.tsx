@@ -12,16 +12,18 @@ import {
   BarChart3,
   LogOut,
   ChevronLeft,
+  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
 interface ManagerSidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  onAiToggle?: () => void;
   branchName?: string;
 }
 
-export function ManagerSidebar({ isOpen, onClose, branchName }: ManagerSidebarProps) {
+export function ManagerSidebar({ isOpen, onClose, onAiToggle, branchName }: ManagerSidebarProps) {
   const pathname = usePathname();
   const params = useParams();
   const { logout, user } = useAuthStore();
@@ -112,6 +114,14 @@ export function ManagerSidebar({ isOpen, onClose, branchName }: ManagerSidebarPr
             <p className="text-white/35 text-[10px] truncate">{user?.email}</p>
           </div>
         </div>
+
+        <button
+          onClick={() => onAiToggle?.()}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 transition-all text-sm font-medium border border-amber-400/20"
+        >
+          <Sparkles size={16} />
+          <span>Ordera AI</span>
+        </button>
 
         <button
           onClick={() => logout()}

@@ -12,21 +12,29 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly usersService: UsersService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: (req: any) => {
+        if (req && req.cookies) {
+          return req.cookies['ordera_token'];
+        }
+        return null;
+      },
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
   async validate(payload: JwtPayload) {
-    // Check if user still exists and is active
     const user = await this.usersService.findById(payload.userId);
     if (!user || !user.isActive) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('User not found or inactive');
     }
     
-    // Check if session mentioned in payload is still active (session logic removed for simplicity here, but would link to activeSessions)
+    // Validate session
+    const session = user.activeSessions.find(s => s.sessionId === payload.sessionId);
+    if (!session || !session.isActive || (session.expiresAt && session.expiresAt < new Date())) {
+      throw new UnauthorizedException('Session expired or revoked');
+    }
     
-    return payload; // request.user = payload
+    return payload;
   }
 }

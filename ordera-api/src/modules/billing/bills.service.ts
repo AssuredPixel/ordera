@@ -22,8 +22,8 @@ export class BillsService {
     private readonly pusherService: PusherService,
   ) {}
 
-  async createBill(orderId: string, branchId: string) {
-    const order = await this.orderModel.findOne({ _id: orderId, branchId });
+  async createBill(orderId: string, branchId: string, organizationId: string) {
+    const order = await this.orderModel.findOne({ _id: orderId, branchId, organizationId });
     if (!order) throw new NotFoundException('Order not found');
     const allowedStatuses = [
       OrderStatus.SENT_TO_KITCHEN,
@@ -64,15 +64,19 @@ export class BillsService {
     return bill;
   }
 
-  async chargeBill(id: string, branchId: string, userId: string, data: any) {
-    const bill = await this.billModel.findOne({ _id: id, branchId });
+  async chargeBill(id: string, branchId: string, organizationId: string, userId: string, data: any) {
+    const bill = await this.billModel.findOne({ _id: id, branchId, organizationId });
     if (!bill) throw new NotFoundException('Bill not found');
     if (bill.status !== BillStatus.ACTIVE) {
       throw new BadRequestException('Bill is not active');
     }
 
-    // 1. Tip Logic
-    if (data.tipType && data.tipValue) {
+    // 1. Tip Logic (Issue 13: Prevent negative tips)
+    if (data.tipType && data.tipValue !== undefined) {
+      if (data.tipValue < 0) {
+        throw new BadRequestException('Tip value cannot be negative');
+      }
+
       let tipAmountValue = 0;
       if (data.tipType === 'percentage') {
         tipAmountValue = Math.round(bill.subtotal.amount * (data.tipValue / 100));
@@ -90,8 +94,12 @@ export class BillsService {
       bill.total.amount = bill.subtotal.amount + bill.tax.amount + tipAmountValue;
     }
 
-    // 2. Payment Logic
+    // 2. Payment Logic (Issue 13: Prevent negative payments)
     const amountPaid = data.amountPaid || bill.total.amount;
+    if (amountPaid < 0) {
+       throw new BadRequestException('Amount paid cannot be negative');
+    }
+
     const change = amountPaid > bill.total.amount ? amountPaid - bill.total.amount : 0;
 
     bill.payment = {
@@ -122,28 +130,28 @@ export class BillsService {
     return bill.save();
   }
 
-  async findActive(branchId: string, role: string, userId: string) {
-    const query: any = { branchId, status: BillStatus.ACTIVE };
+  async findActive(branchId: string, organizationId: string, role: string, userId: string) {
+    const query: any = { branchId, organizationId, status: BillStatus.ACTIVE };
     if (role === Role.WAITER) {
       query.waiterId = userId;
     }
     return this.billModel.find(query).sort({ createdAt: -1 });
   }
 
-  async findHistory(branchId: string, role: string, userId: string) {
-    const query: any = { branchId, status: { $in: [BillStatus.PAID, BillStatus.CANCELLED] } };
+  async findHistory(branchId: string, organizationId: string, role: string, userId: string) {
+    const query: any = { branchId, organizationId, status: { $in: [BillStatus.PAID, BillStatus.CANCELLED] } };
     if (role === Role.WAITER) {
       query.waiterId = userId;
     }
     return this.billModel.find(query).sort({ updatedAt: -1 }).limit(100);
   }
 
-  async findById(id: string, branchId: string) {
-    return this.billModel.findOne({ _id: id, branchId });
+  async findById(id: string, branchId: string, organizationId: string) {
+    return this.billModel.findOne({ _id: id, branchId, organizationId });
   }
 
-  async cancelBill(id: string, branchId: string) {
-    const bill = await this.billModel.findOne({ _id: id, branchId });
+  async cancelBill(id: string, branchId: string, organizationId: string) {
+    const bill = await this.billModel.findOne({ _id: id, branchId, organizationId });
     if (!bill) throw new NotFoundException('Bill not found');
     if (bill.status !== BillStatus.ACTIVE) {
       throw new BadRequestException('Only active bills can be cancelled');

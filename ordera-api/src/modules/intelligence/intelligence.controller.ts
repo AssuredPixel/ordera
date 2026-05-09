@@ -4,7 +4,9 @@ import {
   Post,
   Body,
   UseGuards,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { IntelligenceService } from './intelligence.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -20,6 +22,12 @@ export class IntelligenceController {
   @Post('query')
   async query(@GetUser() user: any, @Body('query') question: string) {
     return this.aiService.query(user, question);
+  }
+
+  @Post('stream')
+  async stream(@GetUser() user: any, @Body('query') question: string, @Res() res: Response) {
+    const stream = await this.aiService.streamQuery(user, question);
+    stream.pipe(res);
   }
 
   @Get('usage')

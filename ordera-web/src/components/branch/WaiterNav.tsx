@@ -9,7 +9,8 @@ import {
   MessageSquare, 
   Bell,
   LogOut,
-  User
+  User,
+  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
@@ -46,7 +47,7 @@ function NavItem({ href, icon: Icon, label, badge, active }: NavItemProps) {
   );
 }
 
-export function WaiterNav({ unreadNotifications = 0 }: { unreadNotifications?: number }) {
+export function WaiterNav({ unreadNotifications = 0, onAiToggle }: { unreadNotifications?: number; onAiToggle?: () => void }) {
   const pathname = usePathname();
   const params = useParams();
   const { logout, user } = useAuthStore();
@@ -142,6 +143,14 @@ export function WaiterNav({ unreadNotifications = 0 }: { unreadNotifications?: n
             </div>
           </div>
           
+          <button 
+            onClick={() => onAiToggle?.()}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 transition-all text-sm font-medium border border-amber-400/20"
+          >
+            <Sparkles size={16} />
+            <span>Ordera AI</span>
+          </button>
+
           <button 
             onClick={() => logout()}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/45 hover:text-red-400 hover:bg-red-400/10 transition-all text-sm font-medium"

@@ -1,25 +1,19 @@
-export const TOKEN_KEY = 'ordera_token';
-
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
-
-export const getToken = () => typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-export const setToken = (token: string) => localStorage.setItem(TOKEN_KEY, token);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+// getToken/setToken are no longer used for Auth as we transitioned to HttpOnly cookies.
+// They are kept as stubs for backward compatibility if other code imports them.
+export const getToken = () => null;
+export const setToken = (token: string) => {};
+export const clearToken = () => {};
 
 async function request<T>(
   method: string,
   path: string,
   body?: any
 ): Promise<T> {
-  const token = getToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
@@ -30,6 +24,7 @@ async function request<T>(
       headers,
       body: body ? JSON.stringify(body) : undefined,
       signal: controller.signal,
+      credentials: 'include', // Mandatory for HttpOnly cookies
     });
     clearTimeout(timeoutId);
 
