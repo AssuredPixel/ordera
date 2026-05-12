@@ -136,7 +136,7 @@ export default function CashierDashboard() {
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
       {/* ── TOP NAV ── */}
-      <nav className="bg-white border-b border-gray-100 px-6 lg:px-10 h-20 flex items-center justify-between sticky top-0 z-40">
+      <nav className="bg-white border-b border-gray-100 px-6 xl:px-10 h-20 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-6">
           <button 
             onClick={() => router.back()}
@@ -172,9 +172,9 @@ export default function CashierDashboard() {
         </div>
       </nav>
 
-      <main className="p-4 lg:p-10 max-w-[1600px] mx-auto w-full">
+      <main className="p-4 xl:p-10 max-w-[1600px] mx-auto w-full">
         <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-100/50 min-h-[800px] overflow-hidden">
-          <div className="p-6 lg:p-12">
+          <div className="p-6 xl:p-12">
         <AnimatePresence mode="wait">
           {activeTab === 'current' ? (
             <motion.div
@@ -242,7 +242,7 @@ export default function CashierDashboard() {
                   </div>
 
                   {/* Stats Summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <div className="bg-gray-50/30 p-8 rounded-3xl border border-gray-100 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5 group">
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Expected Total</p>
                       <p className="text-3xl font-display text-[#1A1A2E]">₦{((activeRecon?.totalExpected?.amount || 0) / 100).toLocaleString()}</p>

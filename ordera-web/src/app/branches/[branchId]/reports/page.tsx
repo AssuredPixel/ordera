@@ -120,10 +120,10 @@ export default function ReportsPage() {
       </div>
 
       {/* ── MAIN CHARTS ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
         {/* REVENUE TREND */}
-        <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-6">
+        <div className="xl:col-span-2 bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-2xl text-[#1A1A2E]">Revenue Growth</h3>
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
@@ -205,7 +205,7 @@ export default function ReportsPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {topItems?.slice(0, 4).map((item: any) => (
             <div key={item._id} className="p-6 rounded-3xl bg-gray-50/50 border border-gray-100 space-y-4 hover:scale-[1.02] transition-transform">
               <div className="flex justify-between items-start">

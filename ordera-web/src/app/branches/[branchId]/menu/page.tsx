@@ -70,12 +70,12 @@ export default function MenuAndStock() {
   });
 
   return (
-    <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-100px)] gap-6">
+    <div className="flex flex-col xl:flex-row h-auto xl:h-[calc(100vh-100px)] gap-6">
 
       {/* ── LEFT PANE: Categories ── */}
       <div className={`
-        w-full lg:w-72 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden shrink-0 transition-all duration-300
-        ${isCollapsed ? 'h-[88px] lg:h-full' : 'h-[300px] lg:h-full'}
+        w-full xl:w-72 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden shrink-0 transition-all duration-300
+        ${isCollapsed ? 'h-[88px] xl:h-full' : 'h-[300px] xl:h-full'}
       `}>
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between mb-2">
@@ -83,7 +83,7 @@ export default function MenuAndStock() {
               <h2 className="font-display text-2xl text-[#1A1A2E]">Menu</h2>
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="lg:hidden p-1.5 bg-gray-50 text-gray-400 hover:text-[#C97B2A] rounded-lg transition-colors"
+                className="xl:hidden p-1.5 bg-gray-50 text-gray-400 hover:text-[#C97B2A] rounded-lg transition-colors"
               >
                 {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
               </button>
@@ -95,8 +95,8 @@ export default function MenuAndStock() {
               <FolderPlus size={18} />
             </button>
           </div>
-          {!isCollapsed && <p className="text-xs text-gray-400 lg:block">Manage your branch categories.</p>}
-          <p className="hidden lg:block text-xs text-gray-400">Manage your categories.</p>
+          {!isCollapsed && <p className="text-xs text-gray-400 xl:block">Manage your branch categories.</p>}
+          <p className="hidden xl:block text-xs text-gray-400">Manage your categories.</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
@@ -131,7 +131,7 @@ export default function MenuAndStock() {
       </div>
 
       {/* ── RIGHT PANE: Items Grid ── */}
-      <div className={`flex-1 flex flex-col bg-transparent transition-all duration-300 ${isCollapsed ? 'mt-4' : 'mt-8'} lg:mt-0`}>
+      <div className={`flex-1 flex flex-col bg-transparent transition-all duration-300 ${isCollapsed ? 'mt-4' : 'mt-8'} xl:mt-0`}>
         {selectedCategory ? (
           <>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

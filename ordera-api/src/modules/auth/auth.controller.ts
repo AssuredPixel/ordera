@@ -19,6 +19,14 @@ export class AuthController {
     return result;
   }
 
+  @Post('register-staff')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async registerStaff(@Body() body: { token: string; password: string }, @Req() req: any) {
+    const result = await this.authService.registerStaff(body);
+    this.setCookie(req.res, result.accessToken);
+    return result;
+  }
+
   @Post('login')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   async login(@Body() dto: LoginDto, @Req() req: any) {

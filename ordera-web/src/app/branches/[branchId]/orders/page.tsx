@@ -101,11 +101,11 @@ export default function OrdersManagement() {
 
       {/* ── ORDERS GRID ── */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-pulse">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-48 bg-white rounded-3xl border border-gray-100"></div>)}
         </div>
       ) : filteredOrders.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredOrders.map((order: Order) => (
             <div 
               key={order._id}

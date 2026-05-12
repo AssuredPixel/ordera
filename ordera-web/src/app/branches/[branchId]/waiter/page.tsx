@@ -106,7 +106,7 @@ export default function WaiterDashboard() {
       </div>
 
       {/* ── STATS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <StatCard 
           title="Revenue Today" 
           value={`₦${((stats?.revenueToday || 0) / 100).toLocaleString()}`} 
@@ -152,7 +152,7 @@ export default function WaiterDashboard() {
                 {[1,2,3].map(i => <div key={i} className="h-32 bg-white rounded-3xl border border-gray-100"></div>)}
               </div>
             ) : orders.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {orders.map((order: Order) => (
                   <OrderCard key={order._id} order={order} branchId={branchId as string} />
                 ))}
@@ -187,7 +187,7 @@ export default function WaiterDashboard() {
                 {[1,2,3].map(i => <div key={i} className="h-32 bg-white rounded-3xl border border-gray-100"></div>)}
               </div>
             ) : bills.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {bills.map((bill: Bill) => (
                   <BillCard key={bill._id} bill={bill} onPay={() => setSelectedBill(bill)} />
                 ))}

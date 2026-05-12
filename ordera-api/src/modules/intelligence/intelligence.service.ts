@@ -31,6 +31,10 @@ export class IntelligenceService {
   ) {}
 
   async streamQuery(user: any, question: string) {
+    if (!user) {
+      console.error('AI Stream Error: User object is undefined');
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -98,6 +102,10 @@ Rules:
   }
 
   async query(user: any, question: string) {
+    if (!user) {
+      console.error('AI Query Error: User object is undefined');
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -217,6 +225,8 @@ Rules:
   }
 
   private async buildContext(user: any): Promise<any> {
+    if (!user) return { branchName: 'Ordera Platform', todayRevenue: { amount: 0 }, todayOrderCount: 0, activeOrderCount: 0, staffOnShift: 0, lowStockItems: [], finishedStockItems: [], periodLabel: 'N/A' };
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -308,6 +318,10 @@ Rules:
   }
 
   async getUsage(user: any) {
+    if (!user) {
+      console.error('AI Usage Error: User object is undefined');
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

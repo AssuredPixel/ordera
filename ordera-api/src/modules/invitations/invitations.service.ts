@@ -63,10 +63,12 @@ export class InvitationsService {
     const link = `${frontendUrl}/register/staff?token=${invitation.token}`;
     
     try {
-      await this.resend.emails.send({
-        from: 'Ordera <noreply@ordera.app>',
-        to: invitation.email,
-        subject: `You've been invited to join Ordera`,
+      const fromEmail = this.configService.get('RESEND_FROM_EMAIL') || 'Ordera <onboarding@resend.dev>';
+      
+      const { data, error } = await this.resend.emails.send({
+        from: fromEmail,
+        to: [invitation.email],
+        subject: `Invite: Join ${invitation.firstName} at Ordera`,
         html: `
           <p>Hi ${invitation.firstName || ''},</p>
           <p>You have been invited to join an Ordera branch as a <strong>${invitation.role.replace('_', ' ')}</strong>.</p>
@@ -75,6 +77,11 @@ export class InvitationsService {
           <p>This link expires in 48 hours.</p>
         `
       });
+
+      if (error) {
+        console.error('Resend Error:', error);
+        return;
+      }
 
       invitation.emailSentAt = new Date();
       await invitation.save();

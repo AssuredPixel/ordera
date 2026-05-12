@@ -122,7 +122,7 @@ export default function BranchDashboard() {
       </div>
 
       {/* ── KPI CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         <KPIItem
           title="Revenue Today"
           value={`₦${(kpis?.revenue / 100).toLocaleString()}`}
@@ -150,10 +150,10 @@ export default function BranchDashboard() {
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
         {/* Left Column: Orders & Staff */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="xl:col-span-2 space-y-8">
 
           {/* Live Orders (Placeholder) */}
           <Section title="Live Orders" icon={Clock}>

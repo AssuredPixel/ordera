@@ -13,15 +13,18 @@ import {
   ArrowLeftRight,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  X
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { InviteStaffModal } from '@/components/owner/InviteStaffModal';
+import { toast } from 'sonner';
 
 export default function StaffPage() {
   const { user } = useAuthStore();
-  const [staff, setStaff] = useState<any[]>([]);
+  const [staff, setStaff] = useState<{ active: any[]; pending: any[] }>({ active: [], pending: [] });
   const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -73,7 +76,10 @@ export default function StaffPage() {
     }
   };
 
-  const filteredStaff = staff.filter(s => {
+  const filteredStaff = [
+    ...(staff.active || []).map((s: any) => ({ ...s, isPending: false })),
+    ...(staff.pending || []).map((s: any) => ({ ...s, isPending: true }))
+  ].filter(s => {
     // 1. Exclude the Owner themselves from the staff list
     if (s.role?.toUpperCase() === 'OWNER') return false;
 
@@ -115,7 +121,7 @@ export default function StaffPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Total Staff</p>
-            <p className="text-2xl font-bold text-slate-900">{staff.length}</p>
+            <p className="text-2xl font-bold text-slate-900">{(staff.active?.length || 0) + (staff.pending?.length || 0)}</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
@@ -124,18 +130,16 @@ export default function StaffPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Active Now</p>
-            <p className="text-2xl font-bold text-slate-900">{staff.filter(s => s.isActive).length}</p>
+            <p className="text-2xl font-bold text-slate-900">{staff.active?.filter((s: any) => s.isActive).length || 0}</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
-            <MapPin className="w-6 h-6 text-orange-600" />
+            <AlertCircle className="w-6 h-6 text-orange-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">Avg. Per Branch</p>
-            <p className="text-2xl font-bold text-slate-900">
-              {branches.length > 0 ? (staff.length / branches.length).toFixed(1) : 0}
-            </p>
+            <p className="text-sm text-slate-500">Pending Invites</p>
+            <p className="text-2xl font-bold text-slate-900">{staff.pending?.length || 0}</p>
           </div>
         </div>
       </div>
@@ -209,12 +213,20 @@ export default function StaffPage() {
                       {branches.find(b => b.branchId === s.branchId)?.name || 'Unassigned'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-purple-50 text-purple-700 uppercase border border-purple-100">
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase border ${
+                        s.isPending 
+                          ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                          : 'bg-purple-50 text-purple-700 border-purple-100'
+                      }`}>
                         {s.role?.replace('_', ' ') || 'No Role'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {s.isActive ? (
+                      {s.isPending ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                          Pending
+                        </span>
+                      ) : s.isActive ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
                           Active
                         </span>
@@ -226,37 +238,89 @@ export default function StaffPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="dropdown dropdown-end group/transfer relative">
-                          <button
-                            onClick={(e) => {
-                              // Dropdown logic is handled by CSS hover in this implementation
-                            }}
-                            className="h-8 w-8 hover:text-purple-600 hover:bg-purple-50 flex items-center justify-center rounded-lg transition-colors"
-                            disabled={actionLoading === s._id}
-                          >
-                            <ArrowLeftRight className="w-4 h-4" />
-                          </button>
-                          <div className="absolute right-0 top-full mt-2 hidden group-hover/transfer:block z-50 bg-white border border-slate-200 rounded-xl shadow-2xl min-w-[180px] p-2">
-                            <p className="text-[9px] uppercase font-black text-slate-400 px-3 py-2">Transfer Staff to</p>
-                            {branches.filter(b => b.branchId !== s.branchId).map(b => (
+                        {s.isPending ? (
+                          <>
+                            <button
+                              onClick={async () => {
+                                setActionLoading(s._id);
+                                try {
+                                  const response: any = await api.post(`/api/invitations/${s._id}/resend`);
+                                  const inviteLink = `${window.location.origin}/register/staff?token=${response.token}`;
+                                  toast.success(`Invitation resent to ${s.email}`, {
+                                    description: "Copy the link if email fails.",
+                                    action: {
+                                      label: "Copy Link",
+                                      onClick: () => {
+                                        navigator.clipboard.writeText(inviteLink);
+                                        toast.success("Link copied!");
+                                      }
+                                    }
+                                  });
+                                } catch (e) {
+                                  toast.error("Failed to resend");
+                                } finally {
+                                  setActionLoading(null);
+                                }
+                              }}
+                              className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 flex items-center justify-center rounded-lg transition-colors"
+                              disabled={actionLoading === s._id}
+                              title="Resend Invitation"
+                            >
+                              <RefreshCw className={`w-4 h-4 ${actionLoading === s._id ? 'animate-spin' : ''}`} />
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Revoke this invitation?')) return;
+                                setActionLoading(s._id);
+                                try {
+                                  await api.patch(`/api/invitations/${s._id}/revoke`);
+                                  toast.success("Invitation revoked");
+                                  fetchData();
+                                } catch (e) {
+                                  toast.error("Failed to revoke");
+                                } finally {
+                                  setActionLoading(null);
+                                }
+                              }}
+                              className="h-8 w-8 hover:text-red-500 hover:bg-red-50 flex items-center justify-center rounded-lg transition-colors"
+                              disabled={actionLoading === s._id}
+                              title="Revoke Invitation"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="dropdown dropdown-end group/transfer relative">
                               <button
-                                key={b.branchId}
-                                onClick={() => handleTransfer(s._id, b.branchId)}
-                                className="w-full text-left px-3 py-2 text-xs text-slate-600 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors font-medium"
+                                className="h-8 w-8 hover:text-purple-600 hover:bg-purple-50 flex items-center justify-center rounded-lg transition-colors"
+                                disabled={actionLoading === s._id}
                               >
-                                {b.name}
+                                <ArrowLeftRight className="w-4 h-4" />
                               </button>
-                            ))}
-                          </div>
-                        </div>
+                              <div className="absolute right-0 top-full mt-2 hidden group-hover/transfer:block z-50 bg-white border border-slate-200 rounded-xl shadow-2xl min-w-[180px] p-2">
+                                <p className="text-[9px] uppercase font-black text-slate-400 px-3 py-2">Transfer Staff to</p>
+                                {branches.filter(b => b.branchId !== s.branchId).map(b => (
+                                  <button
+                                    key={b.branchId}
+                                    onClick={() => handleTransfer(s._id, b.branchId)}
+                                    className="w-full text-left px-3 py-2 text-xs text-slate-600 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors font-medium"
+                                  >
+                                    {b.name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
 
-                        <button
-                          onClick={() => handleDeactivate(s._id)}
-                          className="h-8 w-8 hover:text-red-500 hover:bg-red-50 flex items-center justify-center rounded-lg transition-colors"
-                          disabled={actionLoading === s._id || !s.isActive}
-                        >
-                          <UserMinus className="w-4 h-4" />
-                        </button>
+                            <button
+                              onClick={() => handleDeactivate(s._id)}
+                              className="h-8 w-8 hover:text-red-500 hover:bg-red-50 flex items-center justify-center rounded-lg transition-colors"
+                              disabled={actionLoading === s._id || !s.isActive}
+                            >
+                              <UserMinus className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

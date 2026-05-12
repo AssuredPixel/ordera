@@ -12,6 +12,7 @@ export class OwnerService {
   constructor(
     @InjectModel(Branch.name) private branchModel: Model<Branch>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel('Invitation') private invitationModel: Model<any>,
     private readonly usersService: UsersService,
     private readonly organizationsService: OrganizationsService,
   ) {}
@@ -59,7 +60,18 @@ export class OwnerService {
   // --- STAFF MANAGEMENT ---
 
   async getStaff(organizationId: string) {
-    return this.usersService.findByOrganization(organizationId);
+    const [activeStaff, pendingInvitations] = await Promise.all([
+      this.usersService.findByOrganization(organizationId),
+      this.invitationModel.find({ 
+        organizationId: new Types.ObjectId(organizationId),
+        status: 'pending' 
+      }).lean()
+    ]);
+
+    return {
+      active: activeStaff,
+      pending: pendingInvitations
+    };
   }
 
   async updateStaffRole(userId: string, orgId: string, role: Role) {

@@ -36,11 +36,26 @@ export function InviteStaffModal({ isOpen, onClose, branchId, branches, onSucces
     e.preventDefault();
     setIsLoading(true);
     try {
-      await api.post('/api/invitations', {
+      const response: any = await api.post('/api/invitations', {
         ...formData,
         branchId: branchId || formData.branchId,
       });
-      toast.success(`Invitation sent to ${formData.email}`);
+
+      const invitation = response;
+      const inviteLink = `${window.location.origin}/register/staff?token=${invitation.token}`;
+
+      toast.success(`Invitation sent to ${formData.email}`, {
+        description: "You can also manually copy the invite link.",
+        action: {
+          label: "Copy Link",
+          onClick: () => {
+            navigator.clipboard.writeText(inviteLink);
+            toast.success("Link copied to clipboard!");
+          }
+        },
+        duration: 6000,
+      });
+
       onSuccess();
       onClose();
     } catch (err: any) {

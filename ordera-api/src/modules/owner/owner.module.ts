@@ -6,12 +6,14 @@ import { Branch, BranchSchema } from '../branches/branch.schema';
 import { User, UserSchema } from '../users/user.schema';
 import { UsersModule } from '../users/users.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { Invitation, InvitationSchema } from '../invitations/invitation.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Branch.name, schema: BranchSchema },
       { name: User.name, schema: UserSchema },
+      { name: Invitation.name, schema: InvitationSchema },
     ]),
     UsersModule,
     OrganizationsModule,

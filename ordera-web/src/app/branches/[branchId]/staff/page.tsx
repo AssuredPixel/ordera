@@ -45,8 +45,20 @@ export default function StaffManagement() {
   });
 
   const resendMutation = useMutation({
-    mutationFn: async (id: string) => api.post(`/api/invitations/${id}/resend`),
-    onSuccess: () => toast.success('Invitation resent successfully'),
+    mutationFn: async (id: string) => api.post<any>(`/api/invitations/${id}/resend`),
+    onSuccess: (data) => {
+      const inviteLink = `${window.location.origin}/register/staff?token=${data.token}`;
+      toast.success('Invitation resent successfully', {
+        description: "You can also manually copy the link.",
+        action: {
+          label: "Copy Link",
+          onClick: () => {
+            navigator.clipboard.writeText(inviteLink);
+            toast.success("Link copied!");
+          }
+        }
+      });
+    },
     onError: (err: any) => toast.error(err.message || 'Failed to resend')
   });
 
@@ -89,10 +101,10 @@ export default function StaffManagement() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
         {/* ── PERFORMANCE TABLE (Main focus) ── */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-6">
           <Section title="Live Performance" icon={BarChart3}>
             <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
               <table className="w-full text-left">

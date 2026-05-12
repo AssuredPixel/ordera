@@ -122,7 +122,7 @@ export default function KitchenDashboard() {
   return (
     <>
       {/* Mobile tabs (specific to Orders page) */}
-      <div className="lg:hidden flex border-b border-white/5 shrink-0" style={{ background: '#1A1A2E' }}>
+      <div className="xl:hidden flex border-b border-white/5 shrink-0" style={{ background: '#1A1A2E' }}>
         {([
           { key: 'new',   label: 'New',       count: newOrders.length,   color: 'text-red-400',     active: 'border-red-500' },
           { key: 'prep',  label: 'Preparing', count: prepOrders.length,  color: 'text-amber-400',   active: 'border-amber-400' },
@@ -144,13 +144,13 @@ export default function KitchenDashboard() {
       {/* ────────────────── KANBAN ────────────────── */}
       <div className="flex-1 overflow-hidden">
         {/* Desktop: 3-column layout */}
-        <div className="hidden lg:flex h-full gap-4 p-6 overflow-x-auto" style={{ background: '#0D0D1A' }}>
+        <div className="hidden xl:flex h-full gap-4 p-6 overflow-x-auto" style={{ background: '#0D0D1A' }}>
           <KanbanColumn title="New Orders"      badge={newOrders.length}   badgeColor="bg-red-500/20 text-red-400"     accentColor="#ef4444" orders={newOrders} />
           <KanbanColumn title="In Preparation"  badge={prepOrders.length}  badgeColor="bg-amber-500/20 text-amber-400" accentColor="#f59e0b" orders={prepOrders} />
           <KanbanColumn title="Ready for Pickup" badge={readyOrders.length} badgeColor="bg-emerald-500/20 text-emerald-400" accentColor="#10b981" orders={readyOrders} />
         </div>
         {/* Mobile: single active tab */}
-        <div className="lg:hidden h-full overflow-y-auto p-3 pb-24 space-y-3" style={{ background: '#111122' }}>
+        <div className="xl:hidden h-full overflow-y-auto p-3 pb-24 space-y-3" style={{ background: '#111122' }}>
           {activeTab === 'new'   && (newOrders.length   === 0 ? <EmptyCol /> : newOrders.map((o: any)   => <OrderCard key={o._id} order={o} />))}
           {activeTab === 'prep'  && (prepOrders.length  === 0 ? <EmptyCol /> : prepOrders.map((o: any)  => <OrderCard key={o._id} order={o} />))}
           {activeTab === 'ready' && (readyOrders.length === 0 ? <EmptyCol /> : readyOrders.map((o: any) => <OrderCard key={o._id} order={o} />))}
@@ -158,7 +158,7 @@ export default function KitchenDashboard() {
       </div>
 
       {/* ────────────────── SHIFT BAR (desktop) ────────────────── */}
-      <footer className="hidden lg:flex h-10 shrink-0 border-t border-white/5 items-center justify-between px-6 text-[11px] text-gray-500 font-bold uppercase tracking-widest" style={{ background: '#0A0A14' }}>
+      <footer className="hidden xl:flex h-10 shrink-0 border-t border-white/5 items-center justify-between px-6 text-[11px] text-gray-500 font-bold uppercase tracking-widest" style={{ background: '#0A0A14' }}>
         <div className="flex gap-6">
           <span>Shift prepared: <span className="text-white">{preparedCount}</span></span>
           <span>Last order: <span className="text-white">{lastOrderTime ? formatDistanceToNow(new Date(lastOrderTime), { addSuffix: true }) : '—'}</span></span>
