@@ -3,9 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
-import { Send, Paperclip, MoreVertical, Search, Phone, Video } from 'lucide-react';
+import { Send, Paperclip, MoreVertical, Search, Phone } from 'lucide-react';
 import { useRealtime } from '@/lib/realtime-hook';
-import { io, Socket } from 'socket.io-client';
 
 interface Message {
   _id: string;
@@ -28,12 +27,11 @@ export const ChatView = ({ threadId, threadName }: ChatViewProps) => {
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState<{ userId: string; userName: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuthStore();
 
+  // 1. Fetch History
   useEffect(() => {
-    // 1. Fetch History
     const fetchHistory = async () => {
       try {
         const data = await api.get<Message[]>(`/api/messages/threads/${threadId}/history`);
@@ -43,40 +41,36 @@ export const ChatView = ({ threadId, threadName }: ChatViewProps) => {
       }
     };
     fetchHistory();
+    // Mark as read when opening
+    api.patch(`/api/messages/threads/${threadId}/read`, {}).catch(() => {});
+  }, [threadId]);
 
-    // 2. Setup Socket.io
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-    socketRef.current = io(socketUrl, {
-      query: { token: localStorage.getItem('ordera_token') },
-      path: '/socket.io', // Ensure this matches backend
-    });
+  // 2. Real-time Subscriptions (Pusher)
+  useRealtime(`thread-${threadId}`, 'message:receive', (data: { message: Message }) => {
+    if (data.message.threadId === threadId) {
+      setMessages((prev) => {
+        // Prevent duplicates
+        if (prev.find(m => m._id === data.message._id)) return prev;
+        return [...prev, data.message];
+      });
+      // Mark as read automatically if we are looking at the thread
+      api.patch(`/api/messages/threads/${threadId}/read`, {}).catch(() => {});
+    }
+  });
 
-    socketRef.current.emit('join-thread', { threadId });
+  useRealtime(`thread-${threadId}`, 'typing:start', (data: { threadId: string; userId: string; userName: string }) => {
+    if (data.threadId === threadId && data.userId !== user?.userId) {
+      setOtherUserTyping({ userId: data.userId, userName: data.userName });
+    }
+  });
 
-    socketRef.current.on('message:receive', (data: { message: Message }) => {
-      if (data.message.threadId === threadId) {
-        setMessages((prev) => [...prev, data.message]);
-      }
-    });
+  useRealtime(`thread-${threadId}`, 'typing:stop', (data: { threadId: string; userId: string }) => {
+    if (data.threadId === threadId) {
+      setOtherUserTyping(null);
+    }
+  });
 
-    socketRef.current.on('typing:start', (data: { threadId: string; userId: string; userName: string }) => {
-      if (data.threadId === threadId && data.userId !== user?.userId) {
-        setOtherUserTyping({ userId: data.userId, userName: data.userName });
-      }
-    });
-
-    socketRef.current.on('typing:stop', (data: { threadId: string; userId: string }) => {
-      if (data.threadId === threadId) {
-        setOtherUserTyping(null);
-      }
-    });
-
-    return () => {
-      socketRef.current?.emit('leave-thread', { threadId });
-      socketRef.current?.disconnect();
-    };
-  }, [threadId, user?.userId]);
-
+  // 3. Scroll to Bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -86,29 +80,33 @@ export const ChatView = ({ threadId, threadName }: ChatViewProps) => {
   const handleSend = async () => {
     if (!inputText.trim()) return;
 
-    const payload = {
-      threadId,
-      content: inputText,
-    };
-
-    // Emit via socket
-    socketRef.current?.emit('message:send', payload);
-    
-    // Optimistic UI could be here, but the server will emit message:receive back to us
+    const text = inputText;
     setInputText('');
     handleTyping(false);
+
+    try {
+      await api.post(`/api/messages/threads/${threadId}/messages`, {
+        content: text
+      });
+    } catch (err) {
+      console.error('Failed to send message', err);
+      // Revert if failed? Or just toast
+    }
   };
 
-  const handleTyping = (typing: boolean) => {
+  const handleTyping = async (typing: boolean) => {
     if (isTyping === typing) return;
     setIsTyping(typing);
     
+    try {
+      await api.post(`/api/messages/threads/${threadId}/typing`, { isTyping: typing });
+    } catch (err) {
+      // Ignore typing errors
+    }
+
     if (typing) {
-      socketRef.current?.emit('typing:start', { threadId });
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => handleTyping(false), 3000);
-    } else {
-      socketRef.current?.emit('typing:stop', { threadId });
     }
   };
 

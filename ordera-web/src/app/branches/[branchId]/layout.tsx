@@ -167,7 +167,7 @@ export default function BranchLayout({
         )}
 
         {/* PAGE CONTENT */}
-        <main className={`flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full ${isWaiter ? 'pb-24 lg:pb-10' : ''}`}>
+        <main className={`flex-1 flex flex-col p-6 lg:p-10 max-w-7xl mx-auto w-full ${isWaiter ? 'pb-24 lg:pb-10' : ''}`}>
           {children}
         </main>
       </div>

@@ -17,9 +17,9 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 // ─── CONFIGURE YOUR SUPER ADMIN CREDENTIALS HERE ───────────────────────────
-const SUPER_ADMIN_EMAIL    = 'your-real-admin@yourdomain.com';  // ← change this
-const SUPER_ADMIN_PASSWORD = 'YourStr0ng!Pa$$word2026';         // ← change this
-const SUPER_ADMIN_NAME     = { first: 'Admin', last: 'Ordera' };
+const SUPER_ADMIN_EMAIL = 'zenovastudio.web@gmail.com';  // ← change this
+const SUPER_ADMIN_PASSWORD = 'Atomic?Str0ng!Pa$$word#';         // ← change this
+const SUPER_ADMIN_NAME = { first: 'Admin', last: 'Ordera' };
 // ────────────────────────────────────────────────────────────────────────────
 
 async function bootstrap() {
@@ -39,24 +39,24 @@ async function bootstrap() {
 
   if (existing) {
     // Update existing super admin
-    existing.email        = SUPER_ADMIN_EMAIL;
+    existing.email = SUPER_ADMIN_EMAIL;
     existing.passwordHash = passwordHash;
-    existing.firstName    = SUPER_ADMIN_NAME.first;
-    existing.lastName     = SUPER_ADMIN_NAME.last;
+    existing.firstName = SUPER_ADMIN_NAME.first;
+    existing.lastName = SUPER_ADMIN_NAME.last;
     await existing.save();
     console.log(`✅ Super Admin UPDATED: ${SUPER_ADMIN_EMAIL}`);
   } else {
     // Create new
     await userModel.create({
-      firstName:       SUPER_ADMIN_NAME.first,
-      lastName:        SUPER_ADMIN_NAME.last,
-      email:           SUPER_ADMIN_EMAIL,
+      firstName: SUPER_ADMIN_NAME.first,
+      lastName: SUPER_ADMIN_NAME.last,
+      email: SUPER_ADMIN_EMAIL,
       passwordHash,
-      role:            Role.SUPER_ADMIN,
-      organizationId:  null,
-      branchId:        null,
+      role: Role.SUPER_ADMIN,
+      organizationId: null,
+      branchId: null,
       isEmailVerified: true,
-      isActive:        true,
+      isActive: true,
     });
     console.log(`✅ Super Admin CREATED: ${SUPER_ADMIN_EMAIL}`);
   }

@@ -23,7 +23,7 @@ export default function MessagingPage() {
     threads?.personal.find(t => t._id === selectedThreadId);
 
   return (
-    <div className="h-[calc(100vh-140px)] -m-6 lg:-m-10 flex bg-white overflow-hidden border border-gray-100 rounded-[2rem] shadow-sm">
+    <div className="flex-1 flex bg-white overflow-hidden border border-gray-100 rounded-[2rem] shadow-sm mb-4 lg:mb-0">
       
       {/* ── THREAD LIST (LEFT) ── */}
       <div className={`w-full md:w-80 lg:w-96 flex flex-col ${selectedThreadId ? 'hidden md:flex' : 'flex'}`}>

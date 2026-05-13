@@ -73,4 +73,12 @@ export class MessagesController {
   ) {
     return this.messagesService.markAsRead(threadId, userId);
   }
+  @Post('threads/:id/typing')
+  async sendTyping(
+    @Param('id') threadId: string,
+    @GetUser() user: any,
+    @Body('isTyping') isTyping: boolean,
+  ) {
+    return this.messagesService.sendTypingEvent(threadId, user, isTyping);
+  }
 }

@@ -27,8 +27,8 @@ export class ResourceOwnerGuard implements CanActivate {
     // SUPER_ADMIN can access everything
     if (user.role === Role.SUPER_ADMIN) return true;
 
-    const params = request.params;
-    const body = request.body;
+    const params = request.params || {};
+    const body = request.body || {};
 
     // 1. Organization Check (Mandatory for all except SUPER_ADMIN)
     const orgId = params.organizationId || body.organizationId;

@@ -3,7 +3,9 @@
 import React from 'react';
 import { useAuthStore } from '@/lib/auth-store';
 import { formatDistanceToNow } from 'date-fns';
-import { Users, User as UserIcon } from 'lucide-react';
+import { Users, User as UserIcon, Plus } from 'lucide-react';
+import { NewChatModal } from './NewChatModal';
+import { useParams } from 'next/navigation';
 
 interface Thread {
   _id: string;
@@ -29,6 +31,8 @@ interface ThreadListProps {
 
 export const ThreadList = ({ threads, activeThreadId, onSelectThread }: ThreadListProps) => {
   const { user } = useAuthStore();
+  const { branchId } = useParams();
+  const [isNewChatOpen, setIsNewChatOpen] = React.useState(false);
 
   const renderThreadRow = (thread: Thread) => {
     const isActive = thread._id === activeThreadId;
@@ -89,8 +93,15 @@ export const ThreadList = ({ threads, activeThreadId, onSelectThread }: ThreadLi
 
   return (
     <div className="flex flex-col h-full bg-white border-r border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
+      <div className="p-6 border-b border-gray-100 flex items-center justify-between">
         <h2 className="font-display text-xl text-[#1A1A2E]">Messages</h2>
+        <button 
+          onClick={() => setIsNewChatOpen(true)}
+          className="p-2 rounded-xl bg-[#C97B2A]/10 text-[#C97B2A] hover:bg-[#C97B2A]/20 transition-all active:scale-95"
+          title="New Message"
+        >
+          <Plus size={20} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-10 custom-scrollbar">
@@ -114,6 +125,14 @@ export const ThreadList = ({ threads, activeThreadId, onSelectThread }: ThreadLi
           </div>
         </div>
       </div>
+
+      {isNewChatOpen && (
+        <NewChatModal 
+          branchId={branchId as string}
+          onClose={() => setIsNewChatOpen(false)}
+          onChatCreated={(threadId) => onSelectThread(threadId)}
+        />
+      )}
     </div>
   );
 };

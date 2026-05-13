@@ -111,7 +111,7 @@ export default function KitchenLayout({ children }: { children: React.ReactNode 
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex-1 flex flex-col overflow-hidden relative p-4 lg:p-8">
           {children}
         </div>
 

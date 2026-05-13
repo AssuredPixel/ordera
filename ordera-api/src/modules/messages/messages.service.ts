@@ -223,4 +223,18 @@ export class MessagesService {
 
     return message;
   }
+
+  async sendTypingEvent(threadId: string, user: any, isTyping: boolean) {
+    const event = isTyping ? 'typing:start' : 'typing:stop';
+    await this.pusherService.trigger(
+      `thread-${threadId}`,
+      event,
+      {
+        threadId,
+        userId: user.userId,
+        userName: user.firstName || 'Staff',
+      }
+    );
+    return { success: true };
+  }
 }
