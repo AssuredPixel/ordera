@@ -57,7 +57,14 @@ export default function SettingsPage() {
   const fetchSettings = async () => {
     try {
       const data: any = await api.get('/api/owner/settings');
-      setOrgData(data.organization);
+      setOrgData({
+        ...orgData,
+        ...data.organization,
+        socialLinks: {
+          ...orgData.socialLinks,
+          ...(data.organization.socialLinks || {})
+        }
+      });
       setProfileData(data.profile);
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -255,10 +262,10 @@ export default function SettingsPage() {
                       <div className="relative">
                         <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pink-500" />
                         <input 
-                          value={orgData.socialLinks.instagram}
+                          value={orgData.socialLinks?.instagram || ''}
                           onChange={e => setOrgData({
                             ...orgData, 
-                            socialLinks: {...orgData.socialLinks, instagram: e.target.value}
+                            socialLinks: {...(orgData.socialLinks || {}), instagram: e.target.value}
                           })}
                           className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-500"
                         />
@@ -269,10 +276,10 @@ export default function SettingsPage() {
                       <div className="relative">
                         <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-600" />
                         <input 
-                          value={orgData.socialLinks.facebook}
+                          value={orgData.socialLinks?.facebook || ''}
                           onChange={e => setOrgData({
                             ...orgData, 
-                            socialLinks: {...orgData.socialLinks, facebook: e.target.value}
+                            socialLinks: {...(orgData.socialLinks || {}), facebook: e.target.value}
                           })}
                           className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-500"
                         />

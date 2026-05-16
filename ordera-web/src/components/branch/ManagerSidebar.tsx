@@ -58,7 +58,7 @@ export function ManagerSidebar({ isOpen, onClose, onAiToggle, branchName }: Mana
           </div>
           <div className="mt-1 flex items-center">
             <span className="px-2 py-0.5 rounded-full bg-[#C97B2A]/20 text-[#C97B2A] text-[10px] font-bold uppercase tracking-wider">
-              Manager
+              {user?.role?.replace('_', ' ') || 'Manager'}
             </span>
           </div>
         </div>
@@ -109,7 +109,7 @@ export function ManagerSidebar({ isOpen, onClose, onAiToggle, branchName }: Mana
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-white text-xs font-medium truncate leading-tight">
-              {user?.name || 'Manager'}
+              {user?.name || (user?.role === 'CASHIER' ? 'Cashier' : 'Manager')}
             </p>
             <p className="text-white/35 text-[10px] truncate">{user?.email}</p>
           </div>

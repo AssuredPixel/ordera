@@ -27,7 +27,7 @@ export function Footer() {
             <h4 className="font-display text-lg mb-6">Company</h4>
             <ul className="space-y-4 text-sm text-gray-400">
               <li><Link href="/about" className="hover:text-brand transition">About Us</Link></li>
-              <li><Link href="/careers" className="hover:text-brand transition disabled opacity-50">Careers</Link></li>
+              <li><Link href="/careers" className="hover:text-brand transition">Careers</Link></li>
               <li><Link href="/contact" className="hover:text-brand transition">Contact</Link></li>
             </ul>
           </div>
@@ -35,8 +35,8 @@ export function Footer() {
           <div>
             <h4 className="font-display text-lg mb-6">Legal</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><Link href="/#" className="hover:text-brand transition">Privacy Policy</Link></li>
-              <li><Link href="/#" className="hover:text-brand transition">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-brand transition">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-brand transition">Terms of Service</Link></li>
             </ul>
           </div>
         </div>

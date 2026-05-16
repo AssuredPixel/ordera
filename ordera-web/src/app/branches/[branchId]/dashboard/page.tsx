@@ -21,10 +21,12 @@ import { format } from 'date-fns';
 import { BranchStats, StockAlert, StaffPerformance, BillSummary, Order, OrderStatus } from '@/types/ordera';
 import { XCircle } from 'lucide-react';
 import { useRealtime } from '@/lib/realtime-hook';
+import { useAuthStore } from '@/lib/auth-store';
 
 export default function BranchDashboard() {
   const { branchId } = useParams();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
 
   // Real-time Updates: Refresh dashboard when orders/bills change
   useRealtime(`branch-${branchId}`, 'order:update', () => {
@@ -106,7 +108,7 @@ export default function BranchDashboard() {
                     </div>
                 </div>
 
-        {isDayOpen && (
+        {isDayOpen && (user?.role === 'BRANCH_MANAGER' || user?.role === 'OWNER') && (
           <button
             onClick={() => {
               if (confirm('Are you sure you want to close the business day? All active shifts will be finalized.')) {

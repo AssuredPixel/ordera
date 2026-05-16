@@ -38,6 +38,8 @@ export const NotificationsPanel = () => {
       setNotifications(data);
     } catch (err) {
       console.error('Failed to fetch notifications', err);
+      // Fallback to empty if API fails
+      setNotifications([]);
     }
   };
 
@@ -47,6 +49,7 @@ export const NotificationsPanel = () => {
       setUnreadCount(count);
     } catch (err) {
       console.error('Failed to fetch count', err);
+      setUnreadCount(0);
     }
   };
 
@@ -116,12 +119,16 @@ export const NotificationsPanel = () => {
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-xl bg-white border border-gray-100 text-muted hover:bg-gray-50 transition-all shadow-sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log('Bell clicked, current state:', isOpen);
+          setIsOpen(!isOpen);
+        }}
+        className="relative p-2.5 rounded-xl bg-white border border-gray-100 text-muted hover:bg-gray-50 transition-all shadow-sm active:scale-95 z-[51]"
       >
         <Bell size={20} />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+          <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -130,10 +137,10 @@ export const NotificationsPanel = () => {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[100] bg-black/5"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-3 w-80 max-h-[500px] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden flex flex-col">
+          <div className="absolute right-0 mt-3 w-80 max-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-[101] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 origin-top-right">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <h3 className="font-display text-lg text-[#1A1A2E]">Notifications</h3>
               <button

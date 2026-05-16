@@ -49,7 +49,6 @@ export default function BranchLayout({
     if (window.location.pathname.endsWith('/dashboard')) {
       if (userRole === 'WAITER') router.replace(`/branches/${branchId}/waiter`);
       if (userRole === 'KITCHEN_STAFF') router.replace(`/branches/${branchId}/kitchen`);
-      if (userRole === 'CASHIER') router.replace(`/branches/${branchId}/cashier`);
     }
   }, [user, branchId, isAuthenticated, router]);
 
@@ -89,10 +88,10 @@ export default function BranchLayout({
   const isKitchen = userRole === 'KITCHEN_STAFF';
   const isCashier = userRole === 'CASHIER';
 
-  // KITCHEN & CASHIER FULL-SCREEN LAYOUT
-  if (isKitchen || isCashier) {
+  // KITCHEN FULL-SCREEN LAYOUT
+  if (isKitchen) {
     return (
-      <div className={`min-h-screen ${isKitchen ? 'bg-[#111111]' : 'bg-[#F8F9FA]'}`}>
+      <div className={`min-h-screen bg-[#111111]`}>
         {children}
       </div>
     );
@@ -119,6 +118,7 @@ export default function BranchLayout({
               <h1 className="font-display text-xl text-muted">{branch?.name || 'Ordera'}</h1>
             </div>
             <div className="flex items-center gap-2">
+               <NotificationsPanel />
                <button 
                 onClick={() => setIsAiOpen(true)}
                 className="p-2 rounded-xl bg-amber-50 text-amber-500 hover:bg-amber-100 transition-colors"

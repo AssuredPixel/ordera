@@ -20,11 +20,13 @@ import { InviteStaffModal } from '@/components/owner/InviteStaffModal';
 import { toast } from 'sonner';
 import { StaffMember, Invitation, StaffPerformance } from '@/types/ordera';
 import { useRealtime } from '@/lib/realtime-hook';
+import { useAuthStore } from '@/lib/auth-store';
 
 export default function StaffManagement() {
   const { branchId } = useParams();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
 
   // Real-time Updates
   useRealtime(`branch-${branchId}`, 'order:update', () => {
@@ -92,13 +94,15 @@ export default function StaffManagement() {
           <h1 className="font-display text-4xl text-[#1A1A2E]">Staff Management</h1>
           <p className="text-gray-500 mt-1">Manage team members and monitor performance.</p>
         </div>
-        <button
-          onClick={() => setIsInviteModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-[#C97B2A] text-white rounded-2xl font-bold shadow-lg shadow-[#C97B2A]/20 hover:bg-[#B86A19] transition-all"
-        >
-          <UserPlus size={20} />
-          Invite Staff
-        </button>
+        {(user?.role === 'BRANCH_MANAGER' || user?.role === 'OWNER') && (
+          <button
+            onClick={() => setIsInviteModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-[#C97B2A] text-white rounded-2xl font-bold shadow-lg shadow-[#C97B2A]/20 hover:bg-[#B86A19] transition-all"
+          >
+            <UserPlus size={20} />
+            Invite Staff
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -192,24 +196,26 @@ export default function StaffManagement() {
                       <p className="text-sm font-bold truncate">{invite.firstName} {invite.lastName}</p>
                       <p className="text-xs text-white/40 truncate">{invite.email}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => resendMutation.mutate(invite._id)}
-                        disabled={resendMutation.isPending}
-                        title="Resend Invitation"
-                        className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-[#C97B2A] transition-colors disabled:opacity-50"
-                      >
-                        <RefreshCw size={14} />
-                      </button>
-                      <button
-                        onClick={() => revokeMutation.mutate(invite._id)}
-                        disabled={revokeMutation.isPending}
-                        title="Revoke Invitation"
-                        className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-red-400 transition-colors disabled:opacity-50"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
+                    {(user?.role === 'BRANCH_MANAGER' || user?.role === 'OWNER') && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => resendMutation.mutate(invite._id)}
+                          disabled={resendMutation.isPending}
+                          title="Resend Invitation"
+                          className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-[#C97B2A] transition-colors disabled:opacity-50"
+                        >
+                          <RefreshCw size={14} />
+                        </button>
+                        <button
+                          onClick={() => revokeMutation.mutate(invite._id)}
+                          disabled={revokeMutation.isPending}
+                          title="Revoke Invitation"
+                          className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-red-400 transition-colors disabled:opacity-50"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <span className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-bold uppercase text-white/60">
