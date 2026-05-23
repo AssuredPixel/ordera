@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserPlus, Mail, Phone, Shield, MoreVertical, Loader2, Trash2, RotateCcw } from 'lucide-react';
+import { UserPlus, Mail, Phone, Shield, MoreVertical, Loader2, Trash2, RotateCcw, Copy, CheckCircle2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { InviteStaffModal } from './InviteStaffModal';
@@ -10,6 +10,19 @@ export function BranchStaffTab({ branchId }: { branchId: string }) {
   const [data, setData] = useState<{ active: any[], pending: any[] }>({ active: [], pending: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyInviteLink = async (token: string, id: string) => {
+    const link = `${window.location.origin}/register/staff?token=${token}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(id);
+      toast.success('Invite link copied!', { description: 'Share via WhatsApp, SMS, or email.' });
+      setTimeout(() => setCopiedId(null), 3000);
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
 
   useEffect(() => {
     fetchStaff();
@@ -80,15 +93,26 @@ export function BranchStaffTab({ branchId }: { branchId: string }) {
                        </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button 
-                       onClick={() => handleRevokeInvitation(inv._id)}
-                       className="p-2 text-gray-400 hover:text-red-500 transition"
-                       title="Revoke invitation"
-                    >
-                       <Trash2 size={16} />
-                    </button>
-                  </div>
+                   <div className="flex items-center gap-1">
+                     <button
+                        onClick={() => handleCopyInviteLink(inv.token, inv._id)}
+                        className={`p-2 transition rounded-lg ${
+                          copiedId === inv._id
+                            ? 'text-green-600 bg-green-50'
+                            : 'text-gray-400 hover:text-brand hover:bg-brand/5'
+                        }`}
+                        title="Copy invite link"
+                     >
+                        {copiedId === inv._id ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                     </button>
+                     <button 
+                        onClick={() => handleRevokeInvitation(inv._id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                        title="Revoke invitation"
+                     >
+                        <Trash2 size={16} />
+                     </button>
+                   </div>
                 </div>
               ))}
             </div>

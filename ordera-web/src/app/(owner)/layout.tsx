@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { AnnouncementBanner } from '@/components/common/AnnouncementBanner';
-import { TrialBanner } from '@/components/common/TrialBanner';
 import { OwnerSidebar } from '@/components/owner/OwnerSidebar';
 import { DashboardHeader } from '@/components/common/DashboardHeader';
 import { IntelligencePanel } from '@/components/ai/IntelligencePanel';
@@ -12,7 +11,7 @@ import { IntelligencePanel } from '@/components/ai/IntelligencePanel';
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
-  const { user, isAuthenticated, isLoading, loadUser } = useAuthStore();
+  const { user, isAuthenticated, isLoading, loadUser, organization } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -63,7 +62,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex flex-col min-h-screen relative max-w-full overflow-x-hidden">
       <AnnouncementBanner />
-      <TrialBanner />
+      {/* <TrialBanner /> removed to avoid duplicate */}
 
       {/* MOBILE BACKDROP */}
       {isSidebarOpen && (
@@ -82,10 +81,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
         {/* 240px sidebar width */}
         <div className="flex-1 flex flex-col min-w-0 lg:ml-[240px]">
-          <DashboardHeader
-            title="Owner Dashboard"
-            onMenuClick={() => setIsSidebarOpen(true)}
-          />
+          <DashboardHeader title={organization?.name || "Owner Dashboard"} onMenuClick={() => setIsSidebarOpen(true)} />
           <main className="flex-1 p-4 md:p-8 max-w-[1400px] w-full mx-auto">
             {children}
           </main>

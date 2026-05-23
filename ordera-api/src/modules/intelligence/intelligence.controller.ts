@@ -31,7 +31,7 @@ export class IntelligenceController {
   }
 
   @Get('usage')
-  @Roles(Role.BRANCH_MANAGER, Role.OWNER)
+  @Roles(Role.OWNER, Role.BRANCH_MANAGER, Role.CASHIER, Role.WAITER, Role.KITCHEN_STAFF)
   async getUsage(@GetUser() user: any) {
     return this.aiService.getUsage(user);
   }

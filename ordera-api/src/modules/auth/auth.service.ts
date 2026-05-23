@@ -192,6 +192,38 @@ export class AuthService {
     return { success: true };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) return; // Silent — don't leak existence
+
+    const token = randomUUID();
+    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Store token on user (requires usersService method)
+    await this.usersService.setPasswordResetToken(user._id as any, token, expiry);
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+    // Log to console as fallback (email sending is a backend infrastructure concern)
+    console.log(`[Password Reset] URL for ${email}: ${resetUrl}`);
+
+    // TODO: Send email via Resend when email service is configured
+    // await this.emailService.sendPasswordReset(email, resetUrl);
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.usersService.findByResetToken(token);
+    if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
+      throw new UnauthorizedException('Reset link is invalid or has expired');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await this.usersService.updatePassword(user._id as any, passwordHash);
+
+    return { message: 'Password updated successfully. You can now log in.' };
+  }
+
   private async generateToken(user: any, subdomain: string | null, sessionId: string) {
     const payload = {
       userId: user._id,

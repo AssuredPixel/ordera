@@ -78,4 +78,20 @@ export class AIUsageService {
       totalCost: stats.reduce((acc, curr) => acc + curr.estimatedCost, 0),
     };
   }
+
+  async getOrgCurrentMonthUsage(organizationId: string) {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const record = await this.aiUsageModel.findOne({ 
+      organizationId: new Types.ObjectId(organizationId), 
+      month, 
+      year 
+    });
+    return {
+      queryCount: record?.queryCount || 0,
+      totalTokens: record?.totalTokens || 0,
+      estimatedCost: record?.estimatedCost || 0,
+    };
+  }
 }

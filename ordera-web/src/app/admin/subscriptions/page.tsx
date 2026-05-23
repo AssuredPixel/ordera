@@ -30,6 +30,8 @@ interface Subscription {
   gateway: string;
   currentPeriodStart: string;
   currentPeriodEnd: string;
+  trialStart?: string;
+  trialEnd?: string;
   cancelAtPeriodEnd: boolean;
   notes?: string;
   organization?: {
@@ -243,7 +245,18 @@ export default function SubscriptionsPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 text-sidebar font-medium">
                           <Clock size={14} className="text-muted" />
-                          <span>{sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : 'N/A'}</span>
+                          <span>
+                            {isTrial && sub.trialEnd ? (
+                              (() => {
+                                const daysLeft = Math.max(0, Math.ceil((new Date(sub.trialEnd).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
+                                return `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left`;
+                              })()
+                            ) : sub.currentPeriodEnd ? (
+                              new Date(sub.currentPeriodEnd).toLocaleDateString()
+                            ) : (
+                              'N/A'
+                            )}
+                          </span>
                         </div>
                         {sub.cancelAtPeriodEnd && (
                           <div className="text-[10px] text-red-500 font-bold mt-1">Cancelling at end of period</div>

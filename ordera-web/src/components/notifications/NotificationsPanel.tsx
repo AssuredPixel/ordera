@@ -35,21 +35,23 @@ export const NotificationsPanel = () => {
   const fetchNotifications = async () => {
     try {
       const data = await api.get<Notification[]>('/api/notifications/all?limit=20');
-      setNotifications(data);
+      if (Array.isArray(data)) {
+        setNotifications(data);
+      }
     } catch (err) {
-      console.error('Failed to fetch notifications', err);
-      // Fallback to empty if API fails
-      setNotifications([]);
+      console.warn('Notifications fetch failed or timed out:', err);
+      // Don't crash the UI, just show empty
     }
   };
 
   const fetchCount = async () => {
     try {
-      const { count } = await api.get<{ count: number }>('/api/notifications/count');
-      setUnreadCount(count);
+      const res = await api.get<{ count: number }>('/api/notifications/count');
+      if (res && typeof res.count === 'number') {
+        setUnreadCount(res.count);
+      }
     } catch (err) {
-      console.error('Failed to fetch count', err);
-      setUnreadCount(0);
+      console.warn('Notification count fetch failed:', err);
     }
   };
 
@@ -119,9 +121,8 @@ export const NotificationsPanel = () => {
   return (
     <div className="relative">
       <button
-        onClick={(e) => {
+      onClick={(e) => {
           e.stopPropagation();
-          console.log('Bell clicked, current state:', isOpen);
           setIsOpen(!isOpen);
         }}
         className="relative p-2.5 rounded-xl bg-white border border-gray-100 text-muted hover:bg-gray-50 transition-all shadow-sm active:scale-95 z-[51]"
@@ -137,10 +138,10 @@ export const NotificationsPanel = () => {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-[100] bg-black/5"
+            className="fixed inset-0 z-50"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-3 w-80 max-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-[101] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+          <div className="absolute right-0 top-full mt-2 w-80 max-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <h3 className="font-display text-lg text-[#1A1A2E]">Notifications</h3>
               <button

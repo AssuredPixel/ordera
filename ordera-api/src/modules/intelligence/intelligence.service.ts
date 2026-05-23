@@ -16,6 +16,8 @@ import { OrderStatus } from '../../common/enums/order-status.enum';
 import { BillStatus } from '../../common/enums/bill-status.enum';
 import { StockStatus } from '../../common/enums/stock-status.enum';
 import { ConfigService } from '@nestjs/config';
+import { AIUsageService } from '../platform/ai-usage.service';
+import { SubscriptionService } from '../platform/subscription.service';
 import axios from 'axios';
 
 @Injectable()
@@ -28,6 +30,8 @@ export class IntelligenceService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Shift.name) private readonly shiftModel: Model<Shift>,
     private readonly configService: ConfigService,
+    private readonly aiUsageService: AIUsageService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   async streamQuery(user: any, question: string) {
@@ -45,8 +49,18 @@ export class IntelligenceService {
     });
 
     if (queryCount >= 30) {
+      await this.aiQueryModel.create({
+        organizationId: user.organizationId,
+        branchId: user.branchId,
+        userId: user.userId,
+        query: question,
+        context: { queryDate: new Date(), userRole: user.role, branchName: 'N/A' },
+        status: 'rate_limited',
+      });
       throw new HttpException('Daily query limit reached (30 queries/day)', HttpStatus.TOO_MANY_REQUESTS);
     }
+
+    const startTime = Date.now();
 
     try {
       const context = await this.buildContext(user);
@@ -94,9 +108,90 @@ Rules:
         },
       );
 
-      return response.data;
+      const stream = response.data;
+      let fullResponseText = '';
+      let buffer = '';
+
+      stream.on('data', (chunk: Buffer) => {
+        buffer += chunk.toString();
+        let boundary = buffer.indexOf('\n');
+        while (boundary !== -1) {
+          const line = buffer.substring(0, boundary).trim();
+          buffer = buffer.substring(boundary + 1);
+
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr !== '[DONE]') {
+              try {
+                const parsed = JSON.parse(dataStr);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  fullResponseText += content;
+                }
+              } catch (e) {
+                // Ignore partial JSON parse errors
+              }
+            }
+          }
+          boundary = buffer.indexOf('\n');
+        }
+      });
+
+      stream.on('end', async () => {
+        try {
+          const latency = Date.now() - startTime;
+          const inputTokens = Math.ceil((systemPrompt.length + question.length) / 4);
+          const outputTokens = Math.ceil(fullResponseText.length / 4);
+          const totalTokens = inputTokens + outputTokens;
+
+          const costUsd = (inputTokens * 0.000003) + (outputTokens * 0.000015);
+          const conversionRate = this.configService.get<number>('NAIRA_USD_RATE') || 1550;
+          const costNaira = costUsd * conversionRate;
+
+          // 1. Create a successful query log in database
+          await this.aiQueryModel.create({
+            organizationId: user.organizationId,
+            branchId: user.branchId,
+            userId: user.userId,
+            query: question,
+            context,
+            response: fullResponseText,
+            aiModel: 'openai/gpt-4o-mini',
+            inputTokens,
+            outputTokens,
+            totalTokens,
+            estimatedCostNaira: costNaira,
+            latencyMs: latency,
+            status: 'success',
+          });
+
+          // 2. Log to monthly AIUsage aggregator
+          if (user.organizationId) {
+            await this.aiUsageService.logUsage(
+              user.organizationId.toString(),
+              totalTokens,
+              costNaira,
+            );
+          }
+        } catch (err) {
+          console.error('Error logging streaming AI usage on stream end:', err.message);
+        }
+      });
+
+      return stream;
     } catch (error) {
       console.error('AI Stream Error:', error.response?.data || error.message);
+      
+      await this.aiQueryModel.create({
+        organizationId: user.organizationId,
+        branchId: user.branchId,
+        userId: user.userId,
+        query: question,
+        context: { queryDate: new Date(), userRole: user.role, branchName: 'ErrorCtx' },
+        status: 'error',
+        errorMessage: error.message,
+      });
+
       throw new InternalServerErrorException('Failed to start AI stream');
     }
   }
@@ -202,6 +297,15 @@ Rules:
         latencyMs: latency,
         status: 'success',
       });
+
+      // 7. Log to monthly AIUsage aggregator (feeds super admin dashboard)
+      if (user.organizationId) {
+        this.aiUsageService.logUsage(
+          user.organizationId.toString(),
+          usage.total_tokens,
+          costNaira,
+        ).catch(err => console.warn('AI usage log failed (non-critical):', err.message));
+      }
 
       return {
         response: aiData,
@@ -354,11 +458,42 @@ Rules:
       }),
     ]);
 
+    // Retrieve subscription plan limits & current month's organization stats
+    let plan = 'free';
+    let monthlyLimit = 100;
+    let monthlyQueryCount = 0;
+
+    if (user.organizationId) {
+      try {
+        const sub = await this.subscriptionService.findByOrganization(user.organizationId);
+        if (sub) {
+          plan = sub.plan || 'free';
+          const limits: any = {
+            'free': 100,
+            'starter': 1000,
+            'bread': 5000,
+            'feast': 50000,
+            'custom': 1000000,
+          };
+          monthlyLimit = limits[plan.toLowerCase()] || 100;
+        }
+
+        const orgStats = await this.aiUsageService.getOrgCurrentMonthUsage(user.organizationId);
+        monthlyQueryCount = orgStats.queryCount || 0;
+      } catch (err) {
+        // Fallback silently if subscription or stats query fails
+      }
+    }
+
     return {
       todayCount: todayUsage[0]?.count || 0,
       monthCount: monthUsage,
       totalTokens: todayUsage[0]?.tokens || 0,
       estimatedCostNaira: todayUsage[0]?.cost || 0,
+      plan,
+      monthlyLimit,
+      monthlyQueryCount,
+      role: user.role,
     };
   }
 }

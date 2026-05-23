@@ -12,16 +12,21 @@ export class InvoiceService {
     @InjectModel(Invoice.name) private invoiceModel: Model<Invoice>,
   ) {}
 
-  async create(subscriptionId: string, orgId: string, amount: Money, gateway: PaymentGateway): Promise<Invoice> {
-    // Need to find subscription first to get the plan (for consistency)
-    // Or just pass the plan. For now simplified as requested.
+  async create(
+    subscriptionId: string, 
+    orgId: string, 
+    amount: Money, 
+    gateway: PaymentGateway,
+    plan: SubscriptionPlan,
+    status: 'paid' | 'failed' | 'pending' | 'refunded' = 'pending',
+  ): Promise<Invoice> {
     return this.invoiceModel.create({
       subscriptionId: new Types.ObjectId(subscriptionId),
       organizationId: new Types.ObjectId(orgId),
       amount,
       gateway,
-      plan: SubscriptionPlan.STARTER, // Default or passed in
-      status: 'pending',
+      plan,
+      status,
     });
   }
 

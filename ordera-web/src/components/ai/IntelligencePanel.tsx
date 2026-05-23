@@ -5,6 +5,7 @@ import { Sparkles, X, Send, Paperclip, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -16,6 +17,34 @@ export const IntelligencePanel = ({ isOpen, onClose }: { isOpen: boolean; onClos
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuthStore();
+
+  interface AIUsageStats {
+    todayCount: number;
+    monthCount: number;
+    totalTokens: number;
+    estimatedCostNaira: number;
+    plan: string;
+    monthlyLimit: number;
+    monthlyQueryCount: number;
+    role: string;
+  }
+  
+  const [usageData, setUsageData] = useState<AIUsageStats | null>(null);
+
+  const fetchUsage = async () => {
+    try {
+      const stats = await api.get<AIUsageStats>('/api/ai/usage');
+      setUsageData(stats);
+    } catch (error) {
+      console.warn('Failed to load AI usage limits:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUsage();
+    }
+  }, [isOpen]);
 
   const suggestions = [
     "Today's revenue",
@@ -87,6 +116,7 @@ export const IntelligencePanel = ({ isOpen, onClose }: { isOpen: boolean; onClos
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
     } finally {
       setIsTyping(false);
+      fetchUsage();
     }
   };
 
@@ -111,6 +141,45 @@ export const IntelligencePanel = ({ isOpen, onClose }: { isOpen: boolean; onClos
           <X size={20} />
         </button>
       </div>
+
+      {/* USAGE PANEL */}
+      {usageData && (
+        <div className="bg-amber-50/40 border-b border-amber-100/50 px-8 py-3 flex flex-wrap justify-between items-center text-xs gap-3">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-[#8C581F]">Daily Limit:</span>
+            <span className={`font-bold ${usageData.todayCount >= 25 ? 'text-red-600' : 'text-[#C97B2A]'}`}>
+              {usageData.todayCount} / 30 chats
+            </span>
+            <div className="w-16 h-1.5 bg-gray-200/80 rounded-full overflow-hidden inline-block ml-1">
+              <div 
+                className={`h-full rounded-full transition-all duration-300 ${usageData.todayCount >= 25 ? 'bg-red-500' : 'bg-[#C97B2A]'}`}
+                style={{ width: `${Math.min((usageData.todayCount / 30) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+          
+          {(user?.role === 'owner' || user?.role === 'branch_manager') && (
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">
+                {usageData.plan} Quota:
+              </span>
+              <span className="font-bold text-[#1A1A2E]">
+                {usageData.monthlyQueryCount.toLocaleString()} / {usageData.monthlyLimit.toLocaleString()}
+              </span>
+              <div className="w-16 h-1.5 bg-gray-200/80 rounded-full overflow-hidden inline-block ml-1">
+                <div 
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min((usageData.monthlyQueryCount / usageData.monthlyLimit) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+          
+          <div className="text-[10px] text-gray-400 font-medium ml-auto">
+            {usageData.totalTokens?.toLocaleString() || 0} tokens today
+          </div>
+        </div>
+      )}
 
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-8 space-y-6" ref={scrollRef}>

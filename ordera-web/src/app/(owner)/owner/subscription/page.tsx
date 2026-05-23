@@ -24,6 +24,7 @@ export default function SubscriptionPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showDowngradeModal, setShowDowngradeModal] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -32,14 +33,16 @@ export default function SubscriptionPage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [usageData, invoicesData]: [any, any] = await Promise.all([
+      const [usageResult, invoicesResult] = await Promise.allSettled([
         api.get('/api/billing/owner/usage'),
         api.get('/api/billing/owner/invoices'),
       ]);
-      setUsage(usageData);
-      setInvoices(invoicesData);
+      if (usageResult.status === 'fulfilled') setUsage(usageResult.value as any);
+      if (invoicesResult.status === 'fulfilled' && Array.isArray((invoicesResult.value as any))) {
+        setInvoices(invoicesResult.value as any);
+      }
     } catch (err) {
-      toast.error('Failed to load subscription data');
+      console.warn('Billing data fetch failed:', err);
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +77,7 @@ export default function SubscriptionPage() {
     {
       id: 'starter',
       name: 'Starter',
+      level: 1,
       price: '49,000',
       description: 'Perfect for single-location restaurants starting their journey.',
       features: ['1 Branch Location', 'Up to 5 Staff', 'Core POS Features', 'Email Support'],
@@ -82,6 +86,7 @@ export default function SubscriptionPage() {
     {
       id: 'bread', // Growth
       name: 'Growth',
+      level: 2,
       price: '99,000',
       description: 'Built for growing businesses with multiple locations.',
       features: ['Up to 3 Branches', 'Up to 15 Staff', 'Advanced Analytics', 'Priority Support'],
@@ -91,12 +96,42 @@ export default function SubscriptionPage() {
     {
       id: 'feast', // Pro
       name: 'Pro (Feast)',
+      level: 3,
       price: '199,000',
       description: 'Unlimited power for established restaurant groups.',
-      features: ['Unlimited Branches', 'Unlimited Staff', 'AI Insights', 'dedicated Account Manager'],
+      features: ['Unlimited Branches', 'Unlimited Staff', 'AI Insights', 'Dedicated Account Manager'],
       limits: { branches: 'Unlimited', staff: 'Unlimited' }
     }
   ];
+
+  const currentPlan = plans.find(p => p.id === usage?.plan) || plans[0];
+
+  const handlePlanAction = (planId: string) => {
+    const targetPlan = plans.find(p => p.id === planId);
+    if (!targetPlan) return;
+
+    if (targetPlan.level < currentPlan.level) {
+      setShowDowngradeModal(planId);
+    } else {
+      handleUpgrade(planId, 'paystack');
+    }
+  };
+
+  const handleBillingPortal = async () => {
+    setIsProcessing(true);
+    try {
+      const res: any = await api.get('/api/billing/portal');
+      if (res.url) {
+        window.location.href = res.url;
+      } else {
+        toast.info('Billing portal is being initialized. Please try again in a few minutes.');
+      }
+    } catch (err) {
+      toast.error('Failed to open billing portal');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="space-y-10 pb-20">
@@ -124,7 +159,7 @@ export default function SubscriptionPage() {
         </div>
         <div className="flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-2xl border border-success/20">
            <CheckCircle2 size={18} />
-           <span className="text-sm font-bold uppercase tracking-wider">{usage?.status || 'ACTIVE'}</span>
+           <span className="text-sm font-bold uppercase tracking-wider">{usage?.status || 'TRIAL'}</span>
         </div>
       </div>
 
@@ -137,19 +172,19 @@ export default function SubscriptionPage() {
            <div className="space-y-8 relative z-10">
               <div className="space-y-1">
                  <p className="text-[10px] font-black text-brand uppercase tracking-widest">Your Current Plan</p>
-                 <h2 className="text-3xl font-serif text-gray-900 capitalize">{usage?.plan || 'Starter'}</h2>
+                 <h2 className="text-3xl font-serif text-gray-900 capitalize">{currentPlan.name}</h2>
               </div>
               
               <div className="space-y-6">
                  <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold text-gray-500 uppercase">
                        <span>Branches</span>
-                       <span>{usage?.branches.used} / {usage?.branches.limit}</span>
+                       <span>{usage?.branches?.used ?? '—'} / {usage?.branches?.limit ?? '—'}</span>
                     </div>
                     <div className="h-2.5 bg-gray-50 rounded-full overflow-hidden">
                        <div 
                         className="h-full bg-brand rounded-full transition-all duration-1000" 
-                        style={{ width: `${Math.min(100, (usage?.branches.used / (typeof usage?.branches.limit === 'number' ? usage?.branches.limit : 1)) * 100)}%` }} 
+                        style={{ width: usage?.branches ? `${Math.min(100, (usage.branches.used / (typeof usage.branches.limit === 'number' ? usage.branches.limit : 1)) * 100)}%` : '0%' }} 
                        />
                     </div>
                  </div>
@@ -157,12 +192,12 @@ export default function SubscriptionPage() {
                  <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold text-gray-500 uppercase">
                        <span>Team Staff</span>
-                       <span>{usage?.staff.used} / {usage?.staff.limit}</span>
+                       <span>{usage?.staff?.used ?? '—'} / {usage?.staff?.limit ?? '—'}</span>
                     </div>
                     <div className="h-2.5 bg-gray-50 rounded-full overflow-hidden">
                        <div 
                         className="h-full bg-brand rounded-full transition-all duration-1000" 
-                        style={{ width: `${Math.min(100, (usage?.staff.used / (typeof usage?.staff.limit === 'number' ? usage?.staff.limit : 1)) * 100)}%` }} 
+                        style={{ width: usage?.staff ? `${Math.min(100, (usage.staff.used / (typeof usage.staff.limit === 'number' ? usage.staff.limit : 1)) * 100)}%` : '0%' }} 
                        />
                     </div>
                  </div>
@@ -174,58 +209,103 @@ export default function SubscriptionPage() {
               </div>
            </div>
 
-           <button className="mt-10 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-xl shadow-gray-900/10">
-              <CreditCard size={18} />
+           <button 
+            onClick={handleBillingPortal}
+            disabled={isProcessing}
+            className="mt-10 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-xl shadow-gray-900/10 disabled:opacity-50"
+           >
+              {isProcessing ? <Loader2 className="animate-spin" size={18} /> : <CreditCard size={18} />}
               Manage Billing Portal
            </button>
         </div>
 
         {/* PLAN COMPARISON */}
-        <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-           {plans.filter(p => p.id !== usage?.plan).map((plan) => (
-             <div key={plan.id} className="bg-white border border-gray-100 rounded-[40px] p-8 shadow-sm flex flex-col hover:border-brand/30 transition-all group">
-                <div className="flex items-center justify-between mb-4">
-                   <div className="w-12 h-12 rounded-2xl bg-brand/5 flex items-center justify-center text-brand">
-                      <Zap size={24} />
-                   </div>
-                   {plan.popular && (
-                     <span className="px-3 py-1 bg-brand text-white text-[10px] font-black rounded-full uppercase tracking-tighter shadow-lg shadow-brand/20">Most Popular</span>
-                   )}
-                </div>
-                <h3 className="text-2xl font-serif text-gray-900 mb-1">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                   <span className="text-3xl font-black text-gray-900">₦{plan.price}</span>
-                   <span className="text-gray-500 text-sm font-medium">/month</span>
-                </div>
-                <p className="text-sm text-gray-500 font-medium mb-6">{plan.description}</p>
-                <div className="space-y-3 mb-10 flex-grow">
-                   {plan.features.map((f, i) => (
-                     <div key={i} className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                        <CheckCircle2 size={14} className="text-brand shrink-0" />
-                        {f}
-                     </div>
-                   ))}
-                </div>
-                <div className="flex items-center gap-3">
-                   <button 
-                    onClick={() => handleUpgrade(plan.id, 'paystack')}
-                    disabled={isProcessing}
-                    className="flex-1 py-3.5 bg-brand text-white rounded-2xl font-bold text-xs shadow-lg shadow-brand/10 hover:-translate-y-0.5 transition-all disabled:opacity-50"
-                   >
-                     {isProcessing ? <Loader2 className="animate-spin inline mr-1" size={14} /> : 'Paystack (NGN)'}
-                   </button>
-                   <button 
-                    onClick={() => handleUpgrade(plan.id, 'stripe')}
-                    disabled={isProcessing}
-                    className="flex-1 py-3.5 bg-white border border-gray-200 text-gray-900 rounded-2xl font-bold text-xs hover:bg-gray-50 transition-all disabled:opacity-50"
-                   >
-                     Stripe (USD)
-                   </button>
-                </div>
-             </div>
-           ))}
-        </div>
+         <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {plans.filter(p => p.id !== currentPlan.id).map((plan) => (
+              <div key={plan.id} className="bg-white border border-gray-100 rounded-[40px] p-8 shadow-sm flex flex-col hover:border-brand/30 transition-all group">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-brand/5 flex items-center justify-center text-brand">
+                       <Zap size={24} />
+                    </div>
+                    {plan.popular && (
+                      <span className="px-3 py-1 bg-brand text-white text-[10px] font-black rounded-full uppercase tracking-tighter shadow-lg shadow-brand/20">Most Popular</span>
+                    )}
+                 </div>
+                 <h3 className="text-2xl font-serif text-gray-900 mb-1">{plan.name}</h3>
+                 <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-3xl font-black text-gray-900">₦{plan.price}</span>
+                    <span className="text-gray-500 text-sm font-medium">/month</span>
+                 </div>
+                 <p className="text-sm text-gray-500 font-medium mb-6">{plan.description}</p>
+                 <div className="space-y-3 mb-10 flex-grow">
+                    {plan.features.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                         <CheckCircle2 size={14} className="text-brand shrink-0" />
+                         {f}
+                      </div>
+                    ))}
+                 </div>
+                 <div className="flex flex-col gap-3">
+                    <button 
+                     onClick={() => handlePlanAction(plan.id)}
+                     disabled={isProcessing}
+                     className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
+                       plan.level > currentPlan.level 
+                         ? 'bg-brand text-white shadow-brand/10 hover:-translate-y-0.5' 
+                         : 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50'
+                     }`}
+                    >
+                      {isProcessing ? <Loader2 className="animate-spin" size={16} /> : (plan.level > currentPlan.level ? 'Upgrade Plan' : 'Downgrade Plan')}
+                      <ArrowRight size={16} />
+                    </button>
+                    {plan.level > currentPlan.level && (
+                      <p className="text-[10px] text-center text-gray-400 font-medium italic">Instant activation after payment</p>
+                    )}
+                 </div>
+              </div>
+            ))}
+         </div>
       </div>
+
+      {/* DOWNGRADE MODAL */}
+      {showDowngradeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-sidebar/80 backdrop-blur-md">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl space-y-6"
+          >
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto">
+              <AlertCircle size={32} />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-serif text-gray-900">Confirm Downgrade</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                You are about to downgrade to the <span className="font-bold text-gray-900">{plans.find(p => p.id === showDowngradeModal)?.name}</span> plan. 
+                <br /><br />
+                <span className="text-red-500 font-bold">WARNING:</span> You will lose access to branches and staff members that exceed this plan&apos;s limits immediately.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 pt-4">
+              <button 
+                onClick={() => {
+                  handleUpgrade(showDowngradeModal, 'paystack');
+                  setShowDowngradeModal(null);
+                }}
+                className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold text-sm hover:bg-red-700 transition shadow-xl shadow-red-600/20"
+              >
+                Yes, Downgrade anyway
+              </button>
+              <button 
+                onClick={() => setShowDowngradeModal(null)}
+                className="w-full py-4 bg-gray-100 text-gray-900 rounded-2xl font-bold text-sm hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* PAYMENT HISTORY */}
       <div className="space-y-6">

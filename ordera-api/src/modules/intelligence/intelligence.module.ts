@@ -8,6 +8,7 @@ import { Order, OrderSchema } from '../ordering/schemas/order.schema';
 import { MenuItem, MenuItemSchema } from '../menu/schemas/menu-item.schema';
 import { User, UserSchema } from '../users/user.schema';
 import { Shift, ShiftSchema } from '../scheduling/shift.schema';
+import { PlatformModule } from '../platform/platform.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Shift, ShiftSchema } from '../scheduling/shift.schema';
       { name: User.name, schema: UserSchema },
       { name: Shift.name, schema: ShiftSchema },
     ]),
+    PlatformModule,
   ],
   controllers: [IntelligenceController],
   providers: [IntelligenceService],

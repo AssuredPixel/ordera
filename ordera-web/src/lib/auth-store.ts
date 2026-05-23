@@ -101,10 +101,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const data: any = await api.get('/api/auth/me');
+      const userData = data.user || data;
+      const orgData = data.organization || (data.user ? data.organization : null);
+      
       set({ 
-        user: data, 
-        // Note: Organization might need a separate fetch in Stage 3 but using current user context
-        isAuthenticated: true, 
+        user: userData, 
+        organization: orgData,
+        isAuthenticated: !!userData, 
         isLoading: false 
       });
     } catch (error) {

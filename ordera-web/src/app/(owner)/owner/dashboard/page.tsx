@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Building2,
   RefreshCw,
+  Clock
 } from 'lucide-react';
 
 // ─────────────────────────── TYPES ─────────────────────────────────────────────
@@ -28,7 +29,7 @@ interface BranchSummary {
   slug: string;
   isHeadquarters: boolean;
   isActive: boolean;
-  operatingMode: 'day_based' | 'shift_based';
+  operatingMode: 'DAY_BASED' | 'SHIFT_BASED';
   address?: {
     street?: string;
     city?: string;
@@ -110,11 +111,11 @@ function BranchCard({ branch }: { branch: BranchSummary }) {
             <span
               className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
               style={{
-                background: branch.operatingMode === 'shift_based' ? '#EEF2FF' : '#F0FDF4',
-                color: branch.operatingMode === 'shift_based' ? '#4F46E5' : '#15803D',
+                background: branch.operatingMode === 'SHIFT_BASED' ? '#EEF2FF' : '#F0FDF4',
+                color: branch.operatingMode === 'SHIFT_BASED' ? '#4F46E5' : '#15803D',
               }}
             >
-              {branch.operatingMode === 'shift_based' ? 'Shift-Based' : 'Day-Based'}
+              {branch.operatingMode === 'SHIFT_BASED' ? 'Shift-Based' : 'Day-Based'}
             </span>
           </div>
 
@@ -208,8 +209,8 @@ export default function OwnerDashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.get<DashboardStats>('/api/owner/dashboard/stats');
-      setStats(data);
+      const statsData = await api.get<DashboardStats>('/api/owner/dashboard/stats');
+      setStats(statsData);
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard');
     } finally {
@@ -242,6 +243,34 @@ export default function OwnerDashboardPage() {
           Refresh
         </button>
       </div>
+      
+      {/* ── TRIAL COUNTDOWN ── */}
+      {organization?.subscriptionId?.status === 'trial' && (
+        <div className="bg-brand/5 border border-brand/20 rounded-2xl p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
+              <Clock size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-sidebar">Free Trial Active</p>
+              <p className="text-xs text-muted">
+                Your trial expires in <span className="text-brand font-bold">
+                  {organization.subscriptionId.trialEnd 
+                    ? Math.max(0, Math.ceil((new Date(organization.subscriptionId.trialEnd).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+                    : '...'
+                  } days
+                </span>. Upgrade now to keep your data safe.
+              </p>
+            </div>
+          </div>
+          <Link 
+            href="/owner/subscription"
+            className="px-4 py-2 bg-brand text-white text-xs font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-lg shadow-brand/10 whitespace-nowrap"
+          >
+            View Plans
+          </Link>
+        </div>
+      )}
 
       {/* ── ERROR ── */}
       {error && (

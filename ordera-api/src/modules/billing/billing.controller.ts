@@ -19,6 +19,7 @@ import { Role } from '../../common/enums/role.enum';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 import { JwtPayload } from '../../common/types/jwt-payload.type';
 import { SubscriptionPlan } from '../../common/enums/subscription-plan.enum';
+import { PaymentGateway } from '../../common/enums/payment-gateway.enum';
 import { SubscriptionService } from '../platform/subscription.service';
 import { InvoiceService } from '../platform/invoice.service';
 import { Request, Response } from 'express';
@@ -74,20 +75,27 @@ export class BillingController {
     const event = body.event;
     const data = body.data;
     const orgId = data.metadata?.organizationId;
+    const plan = data.metadata?.plan as SubscriptionPlan;
 
     if (orgId) {
        const sub = await this.subscriptionService.findByOrganization(orgId);
        
        switch (event) {
+         case 'charge.success':
          case 'subscription.create':
          case 'invoice.payment_success':
+           if (plan) {
+             await this.subscriptionService.upgrade(sub._id.toString(), plan);
+           }
            await this.subscriptionService.activate(sub._id.toString());
            // Log invoice
            await this.invoiceService.create(
              sub._id.toString(), 
              orgId, 
              { amount: data.amount / 100, currency: 'NGN' }, 
-             'paystack' as any
+             PaymentGateway.PAYSTACK,
+             plan || sub.plan,
+             'paid'
            );
            break;
          case 'subscription.disable':
@@ -120,6 +128,7 @@ export class BillingController {
 
     const data = event.data.object as any;
     const orgId = data.metadata?.organizationId;
+    const plan = data.metadata?.plan as SubscriptionPlan;
 
     if (orgId) {
       const sub = await this.subscriptionService.findByOrganization(orgId);
@@ -127,7 +136,19 @@ export class BillingController {
       switch (event.type) {
         case 'customer.subscription.updated':
         case 'invoice.payment_succeeded':
+          if (plan) {
+            await this.subscriptionService.upgrade(sub._id.toString(), plan);
+          }
           await this.subscriptionService.activate(sub._id.toString());
+          // Log invoice
+          await this.invoiceService.create(
+            sub._id.toString(),
+            orgId,
+            { amount: (data.amount_paid || data.amount_due || 0) / 100, currency: data.currency?.toUpperCase() || 'USD' },
+            PaymentGateway.STRIPE,
+            plan || sub.plan,
+            'paid'
+          );
           break;
         case 'invoice.payment_failed':
           await this.subscriptionService.markPastDue(sub._id.toString());

@@ -1,7 +1,8 @@
 'use client';
 
-import { Menu, Bell, Search, User } from 'lucide-react';
+import { Menu, Search, User } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
+import { NotificationsPanel } from '../notifications/NotificationsPanel';
 
 interface DashboardHeaderProps {
   onMenuClick?: () => void;
@@ -13,7 +14,7 @@ export function DashboardHeader({ onMenuClick, title, actions }: DashboardHeader
   const { user } = useAuthStore();
 
   return (
-    <header className="h-16 border-b border-border-light bg-white px-3 md:px-8 flex items-center justify-between sticky top-0 z-30 w-full overflow-hidden">
+    <header className="h-16 border-b border-border-light bg-white px-3 md:px-8 flex items-center justify-between sticky top-0 z-40 w-full">
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <button 
           onClick={onMenuClick}
@@ -37,10 +38,7 @@ export function DashboardHeader({ onMenuClick, title, actions }: DashboardHeader
           />
         </div>
         
-        <button className="p-2 text-muted hover:text-sidebar hover:bg-surface rounded-lg transition relative">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-brand rounded-full border-2 border-white" />
-        </button>
+        <NotificationsPanel />
 
         <div className="h-8 w-[1px] bg-border-light mx-1 hidden xs:block" />
 

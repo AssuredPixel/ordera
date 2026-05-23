@@ -86,4 +86,21 @@ export class UsersService {
       isActive: true,
     });
   }
+
+  async setPasswordResetToken(userId: string, token: string, expiry: Date) {
+    return this.userModel.findByIdAndUpdate(userId, {
+      $set: { passwordResetToken: token, passwordResetExpiry: expiry },
+    });
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.userModel.findOne({ passwordResetToken: token }).select('+passwordResetToken');
+  }
+
+  async updatePassword(userId: string, passwordHash: string) {
+    return this.userModel.findByIdAndUpdate(userId, {
+      $set: { passwordHash },
+      $unset: { passwordResetToken: '', passwordResetExpiry: '' },
+    });
+  }
 }
